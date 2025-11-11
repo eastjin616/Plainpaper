@@ -1,10 +1,12 @@
 "use client";
 
+import { mockUser } from "@/app/mockUserData/mockUserData";
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -12,30 +14,23 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const router = useRouter();
+
+  
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
 
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!res.ok) throw new Error("로그인 실패");
-      const data = await res.json();
-      console.log("✅ 로그인 성공:", data);
-      // 로그인 성공 시 토큰 저장 or 라우팅
-      // localStorage.setItem("token", data.access_token);
-      // router.push("/upload");
-    } catch (err: any) {
+    // ✅ Mock 로그인 로직
+    if (email === mockUser.email && password === mockUser.password) {
+      localStorage.setItem("token", "mockToken_123");
+      localStorage.setItem("user", JSON.stringify(mockUser));
+      router.push("/upload"); // 로그인 성공 시 업로드로 이동
+    } else {
       setError("이메일 또는 비밀번호가 올바르지 않습니다.");
-    } finally {
-      setLoading(false);
     }
   };
+
+  
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-zinc-50 to-zinc-100">
