@@ -2,13 +2,17 @@
 
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/_contexts/AuthContext";
 
 export default function Header() {
   const router = useRouter();
+  const { user, isLoggedIn, logout } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem("token"); // JWT 토큰 제거
-    router.push("/login"); // 로그인 화면으로 이동
+    localStorage.removeItem("token");      
+    localStorage.removeItem("user");       
+    logout();                              
+    router.push("/login");
   };
 
   return (
@@ -21,8 +25,15 @@ export default function Header() {
         Plainpaper ✨
       </h1>
 
-      {/* 메뉴 버튼들 */}
-      <div className="flex gap-3">
+      {/* 우측 메뉴 */}
+      <div className="flex items-center gap-3">
+
+        {isLoggedIn && (
+          <span className="text-zinc-700 font-medium">
+            {user?.name}님 반갑습니다 👋
+          </span>
+        )}
+
         <Button
           variant="ghost"
           className="text-zinc-700 hover:text-zinc-900"
@@ -30,6 +41,7 @@ export default function Header() {
         >
           마이페이지
         </Button>
+
         <Button
           variant="outline"
           className="text-zinc-700 hover:text-zinc-900"
@@ -37,6 +49,7 @@ export default function Header() {
         >
           설정
         </Button>
+
         <Button variant="destructive" onClick={handleLogout}>
           로그아웃
         </Button>
