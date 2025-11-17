@@ -7,9 +7,9 @@ interface AuthContextType {
   token: string | null;
   user: UserType | null;
   isLoggedIn: boolean;
-  login: (token: string, user: UserType) => void;
-  logout: () => void;
   loading: boolean;
+  login: (token: string) => void;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -19,31 +19,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // 🔥 앱 시작 시 localStorage → token 로드 + /auth/me 서버 요청
   useEffect(() => {
     const savedToken = localStorage.getItem("token");
-    const rawUser = localStorage.getItem("user");
-
-    if (savedToken) setToken(savedToken);
-
-    if (rawUser) {
-      try {
-        const parsed = JSON.parse(rawUser);
-        setUser(parsed);
-      } catch (err) {
-        console.error("❌ user JSON 파싱 실패:", err);
-        localStorage.removeItem("user"); // 잘못된 값은 바로 제거
-      }
+    if (!savedToken) {
+      setLoading(false);
+      return;
     }
 
-    setLoading(false);
+    setToken(savedToken);
+
+    // 서버에서 사용자 정보 가져오기
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${savedToken}`,
+      },
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Unauthorized");
+        const data = await res.json();
+        setUser(data);
+        localStorage.setItem("user", JSON.stringify(data));
+      })
+      .catch(() => {
+        // 토큰이 유효하지 않으면 로그아웃 처리
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        setToken(null);
+        setUser(null);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
-  const login = (token: string, user: UserType) => {
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
+  // 로그인 → token만 저장하고, user는 /auth/me에서 자동으로 읽힘
+  const login = async (newToken: string) => {
+    localStorage.setItem("token", newToken);
+    setToken(newToken);
 
-    setToken(token);
-    setUser(user);
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${newToken}`,
+      },
+    });
+
+    const userData = await res.json();
+    setUser(userData);
+    localStorage.setItem("user", JSON.stringify(userData));
   };
 
   const logout = () => {
@@ -55,7 +78,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ token, user, isLoggedIn: !!token, login, logout, loading }}
+      value={{
+        token,
+        user,
+        isLoggedIn: !!token,
+        loading,
+        login,
+        logout,
+      }}
     >
       {children}
     </AuthContext.Provider>
