@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Clock, ArrowRight } from "lucide-react";
+import ProtectedPage from "@/app/_contexts/ProtectedPage";
 
 // 임시 mock 데이터
 const mockDocuments = [
@@ -43,6 +44,7 @@ export default function MyPage() {
   }, []);
 
   return (
+    <ProtectedPage>
     <main className="flex flex-col items-center min-h-screen bg-gradient-to-b from-zinc-50 to-zinc-100 p-8">
       <div className="max-w-4xl w-full">
         <h1 className="text-2xl font-bold mb-6 text-zinc-900">
@@ -90,5 +92,6 @@ export default function MyPage() {
         </div>
       </div>
     </main>
+    </ProtectedPage>
   );
 }
