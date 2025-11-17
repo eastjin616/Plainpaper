@@ -21,36 +21,42 @@ export default function UploadPage() {
     }
   };
 
-  const handleUpload = async () => {
-    if (!file) {
-      setMessage("⚠️ 업로드할 파일을 선택해주세요.");
-      return;
-    }
+const handleUpload = async () => {
+  if (!file) {
+    setMessage("⚠️ 업로드할 파일을 선택해주세요.");
+    return;
+  }
 
-    setLoading(true);
-    setMessage("파일 업로드 중...");
+  setLoading(true);
+  setMessage("파일 업로드 중...");
 
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
-        method: "POST",
-        body: formData,
-      });
+    const token = localStorage.getItem("token"); // 🔥 토큰 불러오기
 
-      if (!res.ok) throw new Error("업로드 실패");
-      const data = await res.json();
-      console.log("✅ 업로드 성공:", data);
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/files/upload`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`, // 🔥 반드시 추가해야 함
+      },
+      body: formData,
+    });
 
-      // job_id 또는 result_id로 결과 페이지 이동
-      router.push(`/analysis/${data.job_id || "test-result"}`);
-    } catch (err) {
-      setMessage("❌ 업로드 중 오류가 발생했습니다.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    if (!res.ok) throw new Error("업로드 실패");
+    const data = await res.json();
+    console.log("✅ 업로드 성공:", data);
+
+    // 🔥 백엔드가 주는 document_id 사용해야 함
+    router.push(`/analysis/${data.document_id}`);
+  } catch (err) {
+    console.error(err);
+    setMessage("❌ 업로드 중 오류가 발생했습니다.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <ProtectedPage>
