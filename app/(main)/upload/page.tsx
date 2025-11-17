@@ -48,8 +48,8 @@ const handleUpload = async () => {
     const data = await res.json();
     console.log("✅ 업로드 성공:", data);
 
-    // 🔥 백엔드가 주는 document_id 사용해야 함
-    router.push(`/analysis/${data.document_id}`);
+    //loading 페이지 띄우기
+    router.push(`/analysis/loading/${data.document_id}`);;
   } catch (err) {
     console.error(err);
     setMessage("❌ 업로드 중 오류가 발생했습니다.");
