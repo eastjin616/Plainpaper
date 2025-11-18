@@ -9,6 +9,7 @@ export default function AnalysisLoadingPage() {
   const params = useParams();
   const documentId = params.id;
 
+
   const [status, setStatus] = useState("pending");
 
   // 🔥 주기적으로 상태 확인
