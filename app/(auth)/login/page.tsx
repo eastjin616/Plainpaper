@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,10 @@ export default function LoginPage() {
 
   const router = useRouter();
   const { login } = useAuth();
+
+  useEffect(() => {
+    console.log("🚀 NEXT_PUBLIC_API_URL:", process.env.NEXT_PUBLIC_API_URL);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     console.log("🔥 handleLogin 실행됨");
