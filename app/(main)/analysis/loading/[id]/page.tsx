@@ -26,7 +26,7 @@ export default function AnalysisLoadingPage() {
 
       if (data.status === "done") {
         clearInterval(interval);
-        router.push(`/analysis/${documentId}`);
+        router.push(`${process.env.NEXT_PUBLIC_API_URL}/analysis/${documentId}`);
       }
     }, 2000); // 2초마다 polling
 

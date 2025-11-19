@@ -17,7 +17,8 @@ import { AlertTriangle, BarChart2, ListChecks } from "lucide-react";
 import ProtectedPage from "@/app/_contexts/ProtectedPage";
 
 // 🚀 백엔드 API URL
-const API_URL = "http://localhost:8000";
+// const API_URL = "http://localhost:8000";
+const API_URL = "https://port-0-plainpaper-back-mi5h96va216391ff.sel3.cloudtype.app"
 
 export default function AnalysisResultPage() {
   const router = useRouter();
