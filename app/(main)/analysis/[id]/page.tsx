@@ -55,16 +55,8 @@ useEffect(() => {
         summary: json.summary ?? "",
         description: json.description ?? [],
 
-        // ✨ 하드코딩 부분
-        highlights: [
-          "계약 해지 조건이 까다로울 수 있습니다.",
-          "이용 요금 변동 가능성이 존재합니다."
-        ],
-        metrics: {
-          readability: 75,
-          reliability: 85,
-          risk: 30
-        }
+        highlights: json.highlights ?? [],
+        metrics: json.metrics ?? {},
       });
 
     } catch (err) {
