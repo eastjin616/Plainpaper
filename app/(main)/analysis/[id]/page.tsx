@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
 import { AlertTriangle, BarChart2, ListChecks } from "lucide-react";
 import ProtectedPage from "@/app/_contexts/ProtectedPage";
+import ChatSidebar from "@/components/layout/ChatSidebar";
 
 // 🚀 백엔드 API URL
 // const API_URL = "http://localhost:8000";
@@ -142,6 +143,11 @@ useEffect(() => {
             >
               AI에게 질문하기
             </Button>
+            <ChatSidebar
+              open={isChatOpen}
+              onOpenChange={setIsChatOpen}
+              documentId={analysisId}
+            />
           </div>
         </div>
         
