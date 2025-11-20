@@ -18,8 +18,13 @@ export default function MyPage() {
     async function loadDocuments() {
       try {
         const res = await fetch(`${API_URL}/documents/list`, {
+            headers: {
+            "Authorization": `Bearer ${localStorage.getItem("token")}`,
+          },
           credentials: "include"
         });
+        console.log("API_URL:", process.env.NEXT_PUBLIC_API_URL);
+        console.log("TOKEN:", localStorage.getItem("token"));
         const json = await res.json();
 
         setDocs(json.documents || []);
