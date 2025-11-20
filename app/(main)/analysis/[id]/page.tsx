@@ -24,12 +24,17 @@ export default function AnalysisResultPage() {
   const router = useRouter();
   const params = useParams();
   const analysisId = params.id as string;
+  const document_id = analysisId;
 
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
+
+  const [isChatOpen ,setIsChatOpen] = useState(false);
+
+
 
   // 📌 실제 API 호출
 useEffect(() => {
@@ -99,6 +104,47 @@ useEffect(() => {
   return (
     <ProtectedPage>
       <main className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-zinc-50 to-zinc-100 p-8">
+        
+      {/* 🔥 상단 액션 버튼 바 */}
+      <div className="max-w-3xl w-full flex flex-col md:flex-row md:justify-between gap-4 mb-8">
+        <h1 className="text-3xl font-bold text-zinc-900">📄 분석 결과</h1>
+
+          <div className="flex flex-wrap gap-3">
+            {/* PDF 원문 보기 */}
+            <Button
+              variant="outline"
+              onClick={async () => {
+                const token = localStorage.getItem("token");
+
+                const res = await fetch(`${API_URL}/files/${document_id}/pdf`, {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                });
+
+                if (!res.ok) {
+                  alert("PDF를 가져올 수 없습니다.");
+                  return;
+                }
+
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                window.open(url, "_blank");
+              }}
+            >
+              PDF 원문 보기
+            </Button>
+
+            {/* 챗봇 */}
+            <Button
+              className="bg-purple-600 hover:bg-purple-700"
+              onClick={() => setIsChatOpen(true)}
+            >
+              AI에게 질문하기
+            </Button>
+          </div>
+        </div>
+        
         <div className="max-w-3xl w-full space-y-8">
           {/* 📄 분석 요약 결과 */}
           <Card className="shadow-lg border border-zinc-200 bg-white/80 backdrop-blur">
