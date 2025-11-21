@@ -44,16 +44,27 @@ export default function MyPage() {
     return <p className="text-center mt-20">불러오는 중...</p>;
   }
 
+  // ========== 🔥 문서 삭제 핸들러 =========
 const handleDelete = async (id: string) => {
   if (!confirm("정말 삭제할까요?")) return;
 
   const token = localStorage.getItem("token");
-  const response = await fetch(`${API_URL}/documents/${id}`, {
+  const response = await fetch(`${API_URL}/files/${id}`, {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
+
+  console.log("DELETE response:", response);
+
+  if(response.ok) {
+    alert("문서가 삭제되었습니다.");
+    // 삭제 후 목록에서 해당 문서 제거
+    setDocs(docs.filter(doc => doc.document_id !== id));
+  } else {
+    alert("삭제에 실패했습니다. 다시 시도해주세요.");
+  }
 };
 
   return (
