@@ -227,7 +227,7 @@ useEffect(() => {
             </Button>
 
             <Button
-              className="mt-6 text-lg px-8 bg-blue-600 hover:bg-blue-700"
+              className="mt-6 text-lg px-8 bg-white text-black border border-zinc-300 hover:bg-zinc-100"
               onClick={() => setIsOpen(true)}
             >
               평가하기
