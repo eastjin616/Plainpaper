@@ -146,7 +146,7 @@ useEffect(() => {
             <ChatSidebar
               open={isChatOpen}
               onOpenChange={setIsChatOpen}
-              documentId={analysisId}
+              document_id={analysisId}
             />
           </div>
         </div>
