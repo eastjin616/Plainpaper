@@ -14,39 +14,60 @@ import {
   DropdownMenuSeparator,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import { Skeleton } from "../ui/skeleton";
 
 import { Button } from "@/components/ui/button";
+import { on } from "events";
 
 type ChatSidebarProps = {
   open: boolean;
   onOpenChange: (value: boolean) => void;
-  documentId: string;
+  document_id: string;
 };
 
 export default function ChatSidebar({
   open,
   onOpenChange,
-  documentId,
+  document_id,
 }: ChatSidebarProps) {
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState("");
   const [model, setModel] = useState<"gpt" | "gemini">("gpt");
+  const [loading, setLoading] = useState(false);
 
-  const sendMessage = async () => {
-    if (!input.trim()) return;
+// 🚀 백엔드 API URL
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-    const userMsg = { role: "user", content: input };
-    setMessages((prev) => [...prev, userMsg]);
-    setInput("");
+const sendMessage = async () => {
+  if (!input.trim()) return;
 
-    // TODO: 실제 AI 연결할 부분 (백엔드 API 호출)
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: "assistant",
-        content: `(${model}) 아직 AI 연결 전입니다.`,
-      },
-    ]);
+  const userMsg = { role: "user", content: input };
+  setMessages((prev) => [...prev, userMsg]);
+  setInput("");
+  
+  setLoading(true);
+
+  const res = await fetch(`${API_URL}/analysis/${document_id}/ask`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question: input }),
+  });
+
+  const json = await res.json();
+
+  setMessages((prev) => [
+    ...prev,
+    { role: "assistant", content: json.answer }
+  ]);
+
+  setLoading(false);
+};
+
+// 엔터키로도 전송 가능하게
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+      sendMessage();
+    }
   };
 
   return (
@@ -102,6 +123,16 @@ export default function ChatSidebar({
               </div>
             </div>
           ))}
+
+          {/* --- 🔥 AI 응답 스켈레톤 --- */}
+          {loading && (
+            <div className="text-left">
+              <div className="inline-block bg-zinc-200 rounded-lg p-3">
+                <Skeleton className="h-4 w-[200px] mb-2" />
+                <Skeleton className="h-4 w-[150px]" />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 🔥 입력창 */}
@@ -111,6 +142,7 @@ export default function ChatSidebar({
             onChange={(e) => setInput(e.target.value)}
             className="flex-1 border rounded px-3 py-2 text-sm"
             placeholder="무엇이 궁금하신가요?"
+            onKeyDown={handleKeyDown}
           />
           <Button
             onClick={sendMessage}
