@@ -4,8 +4,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Clock, ArrowRight } from "lucide-react";
+import { FileText, Clock, ArrowRight, Pointer } from "lucide-react";
 import ProtectedPage from "@/app/_contexts/ProtectedPage";
+
+import { X } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -42,6 +44,18 @@ export default function MyPage() {
     return <p className="text-center mt-20">불러오는 중...</p>;
   }
 
+const handleDelete = async (id: string) => {
+  if (!confirm("정말 삭제할까요?")) return;
+
+  const token = localStorage.getItem("token");
+  const response = await fetch(`${API_URL}/documents/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
+
   return (
     <ProtectedPage>
       <main className="flex flex-col items-center min-h-screen bg-gradient-to-b from-zinc-50 to-zinc-100 p-8">
@@ -72,7 +86,7 @@ export default function MyPage() {
                       {doc.summary || "요약 준비 중입니다..."}
                     </p>
 
-                    {/* 날짜 + 상태 */}
+                    {/* 날짜 */}
                     <div className="flex gap-3 text-xs text-zinc-500 mt-1">
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
@@ -82,7 +96,18 @@ export default function MyPage() {
                     </div>
                   </div>
 
-                  <ArrowRight className="w-5 h-5 text-zinc-400" />
+                  {/* 🔥 삭제 버튼 추가 */}
+                  <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={() => handleDelete(doc.document_id) }
+                      className="text-red-500 hover:text-red-700"
+                      style={{ cursor: "pointer" }}
+                    >
+                      <X size={18} />
+                    </button>
+
+                    <ArrowRight className="w-5 h-5 text-zinc-400" />
+                  </div>
                 </CardContent>
               </Card>
             ))}
