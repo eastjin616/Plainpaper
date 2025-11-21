@@ -111,7 +111,7 @@ const handleDelete = async (id: string) => {
                   <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => handleDelete(doc.document_id) }
-                      className="text-red-500 hover:text-red-700"
+                      className="text-red-500 hover:text-red-700 hover:bg-red-100 p-1 rounded"
                       style={{ cursor: "pointer" }}
                     >
                       <X size={18} />
