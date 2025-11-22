@@ -43,7 +43,7 @@ export default function AnalysisResultPage() {
   const [comment, setComment] = useState("");
 
   const handleSubmit = () => {
-    // Submit logic here
+    // TODO: API 연동
     console.log("Rating:", rating);
     console.log("Comment:", comment);
     setIsOpen(false);
@@ -104,53 +104,58 @@ export default function AnalysisResultPage() {
   return (
     <ProtectedPage>
       <main className="min-h-screen bg-gradient-to-b from-zinc-50 to-zinc-100 px-6 py-10">
-
-        {/* 🔥 상단 액션바 */}
+        {/* 🔥 상단 액션바 - 왼쪽 정렬 */}
         <div className="max-w-5xl mx-auto flex justify-between items-center mb-8">
-          <button
-            className="flex items-center gap-2 text-zinc-600 hover:text-zinc-800"
-            onClick={() => router.push("/mypage")}
-          >
-            <ArrowLeft className="w-4 h-4" />
-            뒤로가기
-          </button>
+  
+  {/* 🔙 왼쪽: 뒤로가기 */}
+  <button
+    className="flex items-center gap-2 text-zinc-600 hover:text-zinc-800"
+    onClick={() => router.push("/mypage")}
+  >
+    <ArrowLeft className="w-4 h-4" />
+    뒤로가기
+  </button>
 
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={async () => {
-                const token = localStorage.getItem("token");
-                const res = await fetch(`${API_URL}/files/${documentId}/pdf`, {
-                  headers: { Authorization: `Bearer ${token}` },
-                });
+    {/* 👉 오른쪽 버튼 그룹 */}
+    <div className="flex gap-3 items-center">
+      <Button
+        variant="outline"
+        onClick={async () => {
+          const token = localStorage.getItem("token");
+          const res = await fetch(`${API_URL}/files/${documentId}/pdf`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
 
-                if (!res.ok) {
-                  alert("PDF를 가져올 수 없습니다.");
-                  return;
-                }
+          if (!res.ok) {
+            alert("PDF를 가져올 수 없습니다.");
+            return;
+          }
 
-                const blob = await res.blob();
-                const url = URL.createObjectURL(blob);
-                window.open(url, "_blank");
-              }}
-            >
-              PDF 원문 보기
-            </Button>
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          window.open(url, "_blank");
+        }}
+      >
+        PDF 원문 보기
+      </Button>
 
-            <Button
-              className="bg-purple-600 hover:bg-purple-700"
-              onClick={() => setIsChatOpen(true)}
-            >
-              AI 질문하기
-            </Button>
-          </div>
-        </div>
+      <Button
+        className="bg-purple-600 hover:bg-purple-700"
+        onClick={() => setIsChatOpen(true)}
+      >
+        AI 질문하기
+      </Button>
+    </div>
+  </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] max-w-5xl mx-auto gap-10">
-
+        {/* 🔻 본문 레이아웃: Chat 열리면 2컬럼, 아니면 1컬럼 */}
+        <div
+          className={`max-w-5xl mx-auto gap-10 grid ${
+            isChatOpen ? "grid-cols-1 lg:grid-cols-[1.6fr_1fr]" : "grid-cols-1"
+          }`}
+        >
           {/* ---------- 📄 좌측: 분석 정보 ---------- */}
           <div className="space-y-8">
-
             {/* Summary */}
             <Card className="shadow-md border border-zinc-200 bg-white/80 backdrop-blur">
               <CardContent className="p-8">
@@ -235,35 +240,39 @@ export default function AnalysisResultPage() {
             )}
           </div>
 
-          {/* ----------- 🤖 우측: 챗봇 사이드바 ----------- */}
-          <div className="">
-            <ChatSidebar
-              open={isChatOpen}
-              onOpenChange={setIsChatOpen}
-              document_id={documentId}
-            />
-          </div>
+          {/* ----------- 🤖 우측: 챗봇 사이드바 (열렸을 때만 렌더) ----------- */}
+          {isChatOpen && (
+            <div>
+              <ChatSidebar
+                open={isChatOpen}
+                onOpenChange={setIsChatOpen}
+                document_id={documentId}
+              />
+            </div>
+          )}
         </div>
-        {/* 🔻 하단 액션 버튼 섹션 */}
-          <div className="max-w-5xl mx-auto flex justify-center gap-4 mt-12">
-            {/* 다시 업로드하기 */}
-            <Button
-              className="px-8 py-3 text-lg bg-white border border-zinc-300 text-zinc-900 hover:bg-zinc-100"
-              onClick={() => router.push("/upload")}
-            >
-              다시 업로드하기
-            </Button>
 
-            {/* 평가하기 */}
-            <Button
-              className="px-8 py-3 text-lg bg-purple-600 text-white hover:bg-purple-700"
-              onClick={() => setIsOpen(true)}
-            >
-              평가하기
-            </Button>
-          </div>
+        {/* 🔻 하단 액션 버튼 섹션 */}
+        <div className="max-w-5xl mx-auto flex justify-center gap-4 mt-12">
+          {/* 다시 업로드하기 */}
+          <Button
+            className="px-8 py-3 text-lg bg-white border border-zinc-300 text-zinc-900 hover:bg-zinc-100"
+            onClick={() => router.push("/upload")}
+          >
+            다시 업로드하기
+          </Button>
+
+          {/* 평가하기 */}
+          <Button
+            className="px-8 py-3 text-lg bg-purple-600 text-white hover:bg-purple-700"
+            onClick={() => setIsOpen(true)}
+          >
+            평가하기
+          </Button>
+        </div>
       </main>
 
+      {/* 평가 Dialog */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="sm:max-w-[450px] rounded-xl shadow-2xl border border-zinc-200 bg-white/90 backdrop-blur-xl">
           <DialogHeader>
@@ -277,7 +286,7 @@ export default function AnalysisResultPage() {
 
           {/* ⭐ 별점 선택 */}
           <div className="flex justify-center my-4">
-            {[1,2,3,4,5].map((num) => (
+            {[1, 2, 3, 4, 5].map((num) => (
               <button
                 key={num}
                 onClick={() => setRating(num)}
