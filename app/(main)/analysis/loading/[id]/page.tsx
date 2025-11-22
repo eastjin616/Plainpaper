@@ -2,17 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Loader2 } from "lucide-react";
 
 export default function AnalysisLoadingPage() {
   const router = useRouter();
   const params = useParams();
-  const documentId = params.id;
+  const documentId = params.id as string;
 
+  const [status, setStatus] = useState({
+    status: "pending",
+    progress: 0,
+  });
 
-  const [status, setStatus] = useState("pending");
-
-  // 🔥 주기적으로 상태 확인
   useEffect(() => {
     const interval = setInterval(async () => {
       const res = await fetch(
@@ -21,29 +21,66 @@ export default function AnalysisLoadingPage() {
       );
 
       const data = await res.json();
-
-      setStatus(data.status);
+      setStatus({ status: data.status, progress: data.progress });
 
       if (data.status === "done") {
         clearInterval(interval);
         router.push(`/analysis/${documentId}`);
       }
-    }, 2000); // 2초마다 polling
+    }, 1500);
 
     return () => clearInterval(interval);
   }, [documentId, router]);
 
+  const progressLabel =
+    status.progress < 20
+      ? "문서를 불러오는 중…"
+      : status.progress < 50
+      ? "AI가 내용을 분석하고 있어요…"
+      : status.progress < 80
+      ? "중요한 내용을 추출하는 중…"
+      : status.progress < 100
+      ? "거의 다 왔어요!"
+      : "완료! 페이지로 이동 중…";
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-50">
-      <Loader2 className="h-12 w-12 text-blue-500 animate-spin" />
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-zinc-50 to-zinc-100 px-6">
 
-      <h2 className="text-xl font-semibold mt-4">문서를 분석하고 있습니다…</h2>
-      <p className="text-zinc-500 mt-2">
-        조금만 기다려주세요. AI가 약관을 읽고 내용을 정리하는 중입니다.
-      </p>
+      {/* 🔥 네온 글로우 로더 */}
+      <div className="relative mb-10">
+        <div className="w-24 h-24 border-4 border-transparent border-t-purple-500 border-r-purple-400 rounded-full animate-spin"></div>
 
-      <p className="text-sm text-zinc-400 mt-6">
-        현재 상태: <span className="font-medium">{status}</span>
+        <div className="absolute inset-0 rounded-full blur-xl opacity-30 bg-purple-500"></div>
+      </div>
+
+      {/* 🔥 진행률 카드 */}
+      <div className="backdrop-blur-md bg-white/50 rounded-xl shadow-xl border border-white/30 px-8 py-6 w-[380px] animate-[pulse_3s_ease-in-out_infinite]">
+
+        <h2 className="text-xl font-semibold text-zinc-800 text-center mb-2">
+          문서를 분석하고 있습니다…
+        </h2>
+
+        <p className="text-sm text-center text-zinc-500 mb-6">
+          {progressLabel}
+        </p>
+
+        {/* Progress Bar */}
+        <div className="w-full bg-zinc-200/70 rounded-full h-3 overflow-hidden">
+          <div
+            className="h-3 rounded-full bg-gradient-to-r from-purple-500 to-purple-700 transition-all duration-500 ease-out shadow-lg"
+            style={{ width: `${status.progress}%` }}
+          />
+        </div>
+
+        {/* 숫자 퍼센트 */}
+        <p className="text-center text-sm mt-3 font-medium text-purple-700">
+          {status.progress}% 완료
+        </p>
+      </div>
+
+      {/* 현재 상태 */}
+      <p className="text-xs text-zinc-400 mt-6">
+        상태: {status.status}
       </p>
     </div>
   );
