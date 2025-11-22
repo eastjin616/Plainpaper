@@ -7,19 +7,24 @@ export default function Home() {
   return (
     <ProtectedPage>
       <main className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-zinc-50 to-zinc-100">
-        <Card className="w-[420px] p-8 text-center shadow-xl border border-zinc-200 bg-white/80 backdrop-blur">
+
+        <Card className="w-[440px] p-10 text-center shadow-xl border border-white/30 bg-white/40 backdrop-blur-xl rounded-2xl">
           <CardContent>
-            <h1 className="text-3xl font-bold text-zinc-900 mb-3">
+            <h1 className="text-4xl font-extrabold text-zinc-900 tracking-tight mb-4">
               Plainpaper ✨
             </h1>
-            <p className="text-zinc-600 mb-6">
-              복잡한 문서를 AI가 이해하기 쉽게 풀어드립니다.
+
+            <p className="text-zinc-600 mb-8 text-md leading-relaxed">
+              복잡한 문서도 AI가 쉽게 풀어드립니다.
+              <br /> PDF / 계약서 / 약관 모두 지원합니다.
             </p>
-            <Button asChild className="w-full text-lg font-medium">
-              <Link href="/upload">시작하기</Link>
+
+            <Button asChild className="w-full py-6 text-lg bg-gradient-to-r from-purple-500 to-purple-700 text-white rounded-xl shadow-md hover:shadow-lg transition-all">
+              <Link href="/upload">문서 분석 시작하기</Link>
             </Button>
           </CardContent>
         </Card>
+
       </main>
     </ProtectedPage>
   );

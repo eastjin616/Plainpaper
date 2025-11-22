@@ -1,6 +1,6 @@
 "use client";
 
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,35 +18,29 @@ export default function LoginPage() {
   const { login } = useAuth();
 
   useEffect(() => {
-    console.log("🚀 NEXT_PUBLIC_API_URL:", process.env.NEXT_PUBLIC_API_URL);
+    console.log("🚀 API URL:", process.env.NEXT_PUBLIC_API_URL);
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
-    console.log("🔥 handleLogin 실행됨");
-
     e.preventDefault();
-    setLoading(true);
     setError("");
+    setLoading(true);
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json();   // ✅ json은 한 번만 파싱
-
-      if (!res.ok) {
-        throw new Error(data.detail || "로그인 실패");
-      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "로그인 실패");
 
       localStorage.setItem("token", data.access_token);
       localStorage.setItem("user", JSON.stringify(data.user));
       login(data.access_token);
 
-      router.push("/upload");
-
+      router.push("/");
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -55,15 +49,16 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex items-center justify-center min-h-screen bg-zinc-100">
-      <Card className="w-[420px] p-8 shadow-xl border bg-white">
+    <main className="flex items-center justify-center min-h-screen bg-gradient-to-b from-zinc-50 to-zinc-100">
+      <Card className="w-[420px] p-8 shadow-xl border border-white/50 bg-white/80 backdrop-blur-xl">
         <CardContent>
-          <h1 className="text-3xl font-bold text-center mb-6">Plainpaper</h1>
+          <h1 className="text-3xl font-bold text-center mb-6 text-zinc-900">Plainpaper</h1>
 
-          <form onSubmit={handleLogin} className="flex flex-col space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="text-sm text-zinc-600">이메일</label>
               <Input
+                className="bg-white/80"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -74,6 +69,7 @@ export default function LoginPage() {
             <div>
               <label className="text-sm text-zinc-600">비밀번호</label>
               <Input
+                className="bg-white/80"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -83,17 +79,17 @@ export default function LoginPage() {
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
 
-            <Button type="submit" disabled={loading}>
+            <Button className="w-full text-lg font-medium bg-purple-600 hover:bg-purple-700" type="submit">
               {loading ? "로그인 중..." : "로그인"}
             </Button>
           </form>
 
-          <div className="mt-6 text-sm text-center">
+          <p className="text-center text-sm text-zinc-600 mt-6">
             계정이 없으신가요?{" "}
-            <Link href="/signup" className="text-zinc-900 font-semibold">
+            <Link href="/signup" className="font-semibold text-purple-700 hover:underline">
               회원가입
             </Link>
-          </div>
+          </p>
         </CardContent>
       </Card>
     </main>

@@ -2,12 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import ProtectedPage from "@/app/_contexts/ProtectedPage";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Clock, ArrowRight, Pointer } from "lucide-react";
-import ProtectedPage from "@/app/_contexts/ProtectedPage";
-
-import { X } from "lucide-react";
+import {
+  FileText,
+  Clock,
+  Loader2,
+  Trash2,
+  Plus,
+  CheckCircle,
+} from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -20,15 +25,12 @@ export default function MyPage() {
     async function loadDocuments() {
       try {
         const res = await fetch(`${API_URL}/documents/list`, {
-            headers: {
-            "Authorization": `Bearer ${localStorage.getItem("token")}`,
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-          credentials: "include"
         });
-        console.log("API_URL:", process.env.NEXT_PUBLIC_API_URL);
-        console.log("TOKEN:", localStorage.getItem("token"));
-        const json = await res.json();
 
+        const json = await res.json();
         setDocs(json.documents || []);
       } catch (err) {
         console.error("🔥 목록 불러오기 실패:", err);
@@ -40,99 +42,126 @@ export default function MyPage() {
     loadDocuments();
   }, []);
 
+  // 🔥 문서 삭제
+  const handleDelete = async (id: string) => {
+    if (!confirm("정말 삭제할까요?")) return;
+
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(`${API_URL}/files/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.ok) {
+      setDocs((prev) => prev.filter((doc) => doc.document_id !== id));
+    } else {
+      alert("삭제 실패");
+    }
+  };
+
+  // ----------------------------
+  // 🔥 로딩 중 Skeleton
+  // ----------------------------
   if (loading) {
-    return <p className="text-center mt-20">불러오는 중...</p>;
+    return (
+      <ProtectedPage>
+        <main className="flex items-center justify-center min-h-screen bg-gradient-to-b from-zinc-50 to-zinc-100">
+          <Loader2 className="w-10 h-10 text-zinc-500 animate-spin" />
+        </main>
+      </ProtectedPage>
+    );
   }
-
-  // ========== 🔥 문서 삭제 핸들러 =========
-const handleDelete = async (id: string) => {
-  if (!confirm("정말 삭제할까요?")) return;
-
-  const token = localStorage.getItem("token");
-  const response = await fetch(`${API_URL}/files/${id}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  console.log("DELETE response:", response);
-
-  if(response.ok) {
-    alert("문서가 삭제되었습니다.");
-    // 삭제 후 목록에서 해당 문서 제거
-    setDocs(docs.filter(doc => doc.document_id !== id));
-  } else {
-    alert("삭제에 실패했습니다. 다시 시도해주세요.");
-  }
-};
 
   return (
     <ProtectedPage>
-      <main className="flex flex-col items-center min-h-screen bg-gradient-to-b from-zinc-50 to-zinc-100 p-8">
-        <div className="max-w-4xl w-full">
-          <h1 className="text-2xl font-bold mb-6 text-zinc-900">
-            📂 업로드 문서 이력
-          </h1>
+      <main className="min-h-screen p-10 bg-gradient-to-b from-zinc-50 to-zinc-100 relative">
 
-          <div className="space-y-4">
-            {docs.map((doc) => (
-              <Card
-                key={doc.document_id}
-                className="shadow-sm border border-zinc-200 bg-white/80 hover:shadow-md transition cursor-pointer"
-                onClick={() => router.push(`/analysis/${doc.document_id}`)}
-              >
-                <CardContent className="flex items-center justify-between p-5">
-                  <div className="flex flex-col space-y-1">
-                    {/* 제목 */}
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-5 h-5 text-zinc-500" />
-                      <span className="font-semibold text-zinc-900">
-                        {doc.file_name}
-                      </span>
-                    </div>
+        <h1 className="text-3xl font-bold mb-8 text-zinc-900">📂 내 문서</h1>
 
-                    {/* 요약 내용 앞부분 */}
-                    <p className="text-sm text-zinc-600 line-clamp-1">
-                      {doc.summary || "요약 준비 중입니다..."}
-                    </p>
+        {/* 문서 없음 */}
+        {docs.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-[60vh] text-zinc-500">
+            <FileText className="w-14 h-14 mb-4 text-zinc-400" />
+            <p className="text-lg font-medium">업로드한 문서가 없습니다</p>
+            <p className="text-sm">지금 바로 새로운 문서를 업로드해보세요</p>
 
-                    {/* 날짜 */}
-                    <div className="flex gap-3 text-xs text-zinc-500 mt-1">
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {doc.created_at}
-                      </span>
-                      <span>• {doc.status === "done" ? "분석 완료" : "분석 중"}</span>
-                    </div>
-                  </div>
-
-                  {/* 🔥 삭제 버튼 추가 */}
-                  <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      onClick={() => handleDelete(doc.document_id) }
-                      className="text-red-500 hover:text-red-700 hover:bg-red-100 p-1 rounded"
-                      style={{ cursor: "pointer" }}
-                    >
-                      <X size={18} />
-                    </button>
-
-                    <ArrowRight className="w-5 h-5 text-zinc-400" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <div className="flex justify-center mt-10">
             <Button
+              className="mt-6 text-lg px-8"
               onClick={() => router.push("/upload")}
-              className="px-8 text-lg"
             >
-              새 문서 업로드하기
+              문서 업로드하기
             </Button>
           </div>
+        )}
+
+        {/* 문서 리스트 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {docs.map((doc) => (
+            <Card
+              key={doc.document_id}
+              className="group shadow-sm border border-zinc-200 bg-white/80 backdrop-blur hover:shadow-lg transition relative cursor-pointer"
+              onClick={() => router.push(`/analysis/${doc.document_id}`)}
+            >
+              <CardContent className="p-5">
+
+                {/* 상단 파일명 */}
+                <div className="flex items-center gap-2 mb-3">
+                  <FileText className="w-5 h-5 text-zinc-500" />
+                  <h2 className="font-medium text-zinc-900 truncate">
+                    {doc.file_name}
+                  </h2>
+                </div>
+
+                {/* 요약 본문 */}
+                <p className="text-sm text-zinc-600 line-clamp-2 mb-4">
+                  {doc.summary || "요약 준비 중..."}
+                </p>
+
+                {/* 상태 바 */}
+                {doc.status !== "done" ? (
+                  <div className="flex items-center gap-2 text-sm text-blue-600">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>분석 중...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-sm text-green-600">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>분석 완료</span>
+                  </div>
+                )}
+
+                {/* 생성일 */}
+                <div className="mt-3 flex items-center gap-1 text-xs text-zinc-500">
+                  <Clock className="w-3 h-3" />
+                  {doc.created_at}
+                </div>
+
+                {/* 삭제 버튼 (hover 시만 보임) */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(doc.document_id);
+                  }}
+                  className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition bg-red-100 text-red-600 hover:bg-red-200 p-1.5 rounded-full"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </CardContent>
+            </Card>
+          ))}
         </div>
+
+        {/* ➕ 플로팅 업로드 버튼 */}
+        <button
+          onClick={() => router.push("/upload")}
+          className="fixed bottom-8 right-8 bg-purple-600 hover:bg-purple-700 text-white p-4 rounded-full shadow-xl transition"
+        >
+          <Plus size={24} />
+        </button>
+
       </main>
     </ProtectedPage>
   );

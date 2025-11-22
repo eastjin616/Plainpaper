@@ -10,7 +10,6 @@ export default function SignupSuccessPage() {
   const router = useRouter();
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
 
-  // 화면 크기 감지 (SSR에서 window 없음 방지)
   useEffect(() => {
     if (typeof window !== "undefined") {
       setWindowSize({ width: window.innerWidth, height: window.innerHeight });
@@ -19,26 +18,25 @@ export default function SignupSuccessPage() {
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-zinc-50 to-zinc-100 relative overflow-hidden">
-      {/* 🎉 폭죽 효과 */}
       <Confetti
         width={windowSize.width}
         height={windowSize.height}
-        recycle={false}        // 한 번만 터지게
-        numberOfPieces={180}   // 폭죽 개수
-        gravity={0.25}         // 낙하 속도
+        recycle={false}
+        numberOfPieces={160}
+        gravity={0.25}
       />
 
-      <Card className="w-[400px] p-8 text-center shadow-xl border border-zinc-200 bg-white/80 backdrop-blur relative z-10">
+      <Card className="w-[400px] p-8 text-center shadow-xl border border-white/50 bg-white/80 backdrop-blur-xl relative z-10">
         <CardContent>
-          <h1 className="text-3xl font-bold text-zinc-900 mb-2">🎉Plainpaper✨</h1>
-          <p className="text-zinc-600 mb-1">회원가입이 완료되었습니다!</p>
-          <p className="text-zinc-500 mb-6">복잡한 문서를 쉽게 이해해볼까요?</p>
+          <h1 className="text-3xl font-bold text-zinc-900 mb-2">🎉 가입 완료!</h1>
+          <p className="text-zinc-600 mb-1">회원가입이 성공적으로 마무리되었습니다.</p>
+          <p className="text-zinc-500 mb-6">지금 바로 Plainpaper를 시작해보세요!</p>
 
           <Button
             onClick={() => router.push("/login")}
-            className="w-full text-lg font-medium"
+            className="w-full text-lg font-medium bg-purple-600 hover:bg-purple-700"
           >
-            시작하기
+            로그인 하러 가기
           </Button>
         </CardContent>
       </Card>
