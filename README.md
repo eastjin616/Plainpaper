@@ -21,9 +21,9 @@
 
 # 🏗️ Architecture
 Next.js (Vercel)
-↓ (REST)
+-> (REST)
 FastAPI (Cloudtype Docker)
-↓
+->
 PostgreSQL (Cloudtype Docker)
 
 ---
