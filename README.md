@@ -10,13 +10,14 @@
 
 ## 🎥 Demo Video
 
-### 1) PDF 업로드 흐름
-<video src="https://github.com/eastjin616/Plainpaper/raw/main/app/upload_files/main_page.mp4" controls width="600"></video>
+### 1) PDF 업로드 데모
 
----
+<video src="https://raw.githubusercontent.com/eastjin616/Plainpaper/main/app/upload_files/main_page.mp4" controls width="600"></video>
 
-### 2) AI 채팅 기능
-<video src="https://github.com/eastjin616/Plainpaper/raw/main/app/upload_files/ai_chat.mp4" controls width="600"></video>
+
+### 2) AI 채팅 데모
+
+<video src="https://raw.githubusercontent.com/eastjin616/Plainpaper/main/app/upload_files/ai_chat.mp4" controls width="600"></video>
 ---
 
 # 🏗️ Architecture
