@@ -11,12 +11,11 @@
 ## 🎥 Demo Video (예정)
 추후 아래와 같은 흐름을 담은 데모 영상을 업로드할 예정입니다.
 
-- PDF 업로드  
-- FastAPI 분석 요청
+### 1. PDF 업로드
 <video src="app/upload_files/main_page.mp4" controls width="600"></video>
-- AI 채팅
-<video src="app/upload_files/ai_chat.mp4" controls width="600"></video>
 
+### 2. AI 채팅
+<video src="app/upload_files/ai_chat.mp4" controls width="600"></video>
 ---
 
 # 🏗️ Architecture
