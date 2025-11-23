@@ -11,12 +11,16 @@
 ## 🎥 Demo Video
 
 ### ▸ 메인 기능 (PDF 분석 흐름)
-[▶️ main_page.mp4](https://raw.githubusercontent.com/eastjin616/Plainpaper/main/app/upload_files/main_page.mp4)
+
 
 ---
 
 ### ▸ AI 채팅 기능
-[▶️ ai_chat.mp4](https://raw.githubusercontent.com/eastjin616/Plainpaper/main/app/upload_files/ai_chat.mp4)
+
+
+https://github.com/user-attachments/assets/2285a11f-a7cc-4144-b779-27d1a8b4236b
+
+
 ---
 
 # 🏗️ Architecture
