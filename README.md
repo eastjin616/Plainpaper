@@ -12,10 +12,10 @@
 추후 아래와 같은 흐름을 담은 데모 영상을 업로드할 예정입니다.
 
 - PDF 업로드  
-- FastAPI 분석 요청  
-- LLM 기반 요약/중요문장/TOC 생성  
-- 결과 페이지 렌더링  
-- 리포트 뷰 / 재생성  
+- FastAPI 분석 요청
+<video src="app/upload_files/main_page.mp4" controls width="600"></video>
+- AI 채팅
+<video src="app/upload_files/ai_chat.mp4" controls width="600"></video>
 
 ---
 
