@@ -17,6 +17,7 @@ import {
 import { Skeleton } from "../ui/skeleton";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { on } from "events";
 
 type ChatSidebarProps = {
@@ -35,35 +36,35 @@ export default function ChatSidebar({
   const [model, setModel] = useState<"gpt" | "gemini">("gpt");
   const [loading, setLoading] = useState(false);
 
-// 🚀 백엔드 API URL
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  // 🚀 백엔드 API URL
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-const sendMessage = async () => {
-  if (!input.trim()) return;
+  const sendMessage = async () => {
+    if (!input.trim()) return;
 
-  const userMsg = { role: "user", content: input };
-  setMessages((prev) => [...prev, userMsg]);
-  setInput("");
-  
-  setLoading(true);
+    const userMsg = { role: "user", content: input };
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
 
-  const res = await fetch(`${API_URL}/analysis/${document_id}/ask`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question: input }),
-  });
+    setLoading(true);
 
-  const json = await res.json();
+    const res = await fetch(`${API_URL}/analysis/${document_id}/ask`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question: input }),
+    });
 
-  setMessages((prev) => [
-    ...prev,
-    { role: "assistant", content: json.answer }
-  ]);
+    const json = await res.json();
 
-  setLoading(false);
-};
+    setMessages((prev) => [
+      ...prev,
+      { role: "assistant", content: json.answer }
+    ]);
 
-// 엔터키로도 전송 가능하게
+    setLoading(false);
+  };
+
+  // 엔터키로도 전송 가능하게
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
       sendMessage();
@@ -74,11 +75,11 @@ const sendMessage = async () => {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-[420px] p-6 rounded-l-xl border-l shadow-xl bg-white"
+        className="w-[420px] p-6 rounded-l-xl border-l shadow-xl bg-background"
       >
         <SheetHeader>
           <h2 className="text-xl font-bold">AI 문서 질문하기</h2>
-          <p className="text-sm text-zinc-500">문서 내용을 기반으로 답변합니다.</p>
+          <p className="text-sm text-muted-foreground">문서 내용을 기반으로 답변합니다.</p>
         </SheetHeader>
 
         {/* 🔥 모델 선택 Dropdown (너가 말한 ChatGPT 모델 선택 UI) */}
@@ -113,11 +114,10 @@ const sendMessage = async () => {
           {messages.map((m, i) => (
             <div key={i} className={m.role === "user" ? "text-right" : "text-left"}>
               <div
-                className={`inline-block px-4 py-2 rounded-2xl max-w-[80%] break-words ${
-                  m.role === "user"
-                    ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-br-none"
-                    : "bg-zinc-200 text-black rounded-bl-none"
-                }`}
+                className={`inline-block px-4 py-2 rounded-2xl max-w-[80%] break-words ${m.role === "user"
+                  ? "bg-primary text-primary-foreground rounded-br-none"
+                  : "bg-muted text-foreground rounded-bl-none"
+                  }`}
               >
                 {m.content}
               </div>
@@ -127,7 +127,7 @@ const sendMessage = async () => {
           {/* --- 🔥 AI 응답 스켈레톤 --- */}
           {loading && (
             <div className="text-left">
-              <div className="inline-block bg-zinc-200 rounded-lg p-3">
+              <div className="inline-block bg-muted rounded-lg p-3">
                 <Skeleton className="h-4 w-[200px] mb-2" />
                 <Skeleton className="h-4 w-[150px]" />
               </div>
@@ -137,16 +137,16 @@ const sendMessage = async () => {
 
         {/* 🔥 입력창 */}
         <div className="mt-4 flex gap-2">
-          <input
+          <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            className="flex-1 border rounded px-3 py-2 text-sm"
+            className="flex-1"
             placeholder="무엇이 궁금하신가요?"
             onKeyDown={handleKeyDown}
           />
           <Button
             onClick={sendMessage}
-            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded"
+            className="px-4 py-2"
           >
             전송
           </Button>

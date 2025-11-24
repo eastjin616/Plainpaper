@@ -103,80 +103,79 @@ export default function AnalysisResultPage() {
 
   return (
     <ProtectedPage>
-      <main className="min-h-screen bg-gradient-to-b from-zinc-50 to-zinc-100 px-6 py-10">
+      <main className="min-h-screen bg-background px-6 py-10">
         {/* 🔥 상단 액션바 - 왼쪽 정렬 */}
         <div className="max-w-5xl mx-auto flex justify-between items-center mb-8">
-  
-  {/* 🔙 왼쪽: 뒤로가기 */}
-  <button
-    className="flex items-center gap-2 text-zinc-600 hover:text-zinc-800"
-    onClick={() => router.push("/mypage")}
-  >
-    <ArrowLeft className="w-4 h-4" />
-    뒤로가기
-  </button>
 
-    {/* 👉 오른쪽 버튼 그룹 */}
-    <div className="flex gap-3 items-center">
-      <Button
-        variant="outline"
-        onClick={async () => {
-          const token = localStorage.getItem("token");
-          const res = await fetch(`${API_URL}/files/${documentId}/pdf`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          {/* 🔙 왼쪽: 뒤로가기 */}
+          <button
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+            onClick={() => router.push("/mypage")}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            뒤로가기
+          </button>
 
-          if (!res.ok) {
-            alert("PDF를 가져올 수 없습니다.");
-            return;
-          }
+          {/* 👉 오른쪽 버튼 그룹 */}
+          <div className="flex gap-3 items-center">
+            <Button
+              variant="outline"
+              onClick={async () => {
+                const token = localStorage.getItem("token");
+                const res = await fetch(`${API_URL}/files/${documentId}/pdf`, {
+                  headers: { Authorization: `Bearer ${token}` },
+                });
 
-          const blob = await res.blob();
-          const url = URL.createObjectURL(blob);
-          window.open(url, "_blank");
-        }}
-      >
-        PDF 원문 보기
-      </Button>
+                if (!res.ok) {
+                  alert("PDF를 가져올 수 없습니다.");
+                  return;
+                }
 
-      <Button
-        className="bg-purple-600 hover:bg-purple-700"
-        onClick={() => setIsChatOpen(true)}
-      >
-        AI 질문하기
-      </Button>
-    </div>
-  </div>
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                window.open(url, "_blank");
+              }}
+            >
+              PDF 원문 보기
+            </Button>
+
+            <Button
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              onClick={() => setIsChatOpen(true)}
+            >
+              AI 질문하기
+            </Button>
+          </div>
+        </div>
 
         {/* 🔻 본문 레이아웃: Chat 열리면 2컬럼, 아니면 1컬럼 */}
         <div
-          className={`max-w-5xl mx-auto gap-10 grid ${
-            isChatOpen ? "grid-cols-1 lg:grid-cols-[1.6fr_1fr]" : "grid-cols-1"
-          }`}
+          className={`max-w-5xl mx-auto gap-10 grid ${isChatOpen ? "grid-cols-1 lg:grid-cols-[1.6fr_1fr]" : "grid-cols-1"
+            }`}
         >
           {/* ---------- 📄 좌측: 분석 정보 ---------- */}
           <div className="space-y-8">
             {/* Summary */}
-            <Card className="shadow-md border border-zinc-200 bg-white/80 backdrop-blur">
+            <Card className="shadow-md border-border bg-card/80 backdrop-blur">
               <CardContent className="p-8">
-                <h1 className="text-2xl font-bold mb-4 text-zinc-900 flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-zinc-600" />
+                <h1 className="text-2xl font-bold mb-4 text-foreground flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-muted-foreground" />
                   문서 요약
                 </h1>
-                <p className="text-zinc-700 leading-relaxed whitespace-pre-line">
+                <p className="text-card-foreground leading-relaxed whitespace-pre-line">
                   {data.summary}
                 </p>
               </CardContent>
             </Card>
 
             {/* 핵심 내용 */}
-            <Card className="shadow-md border border-zinc-200 bg-white/80">
+            <Card className="shadow-md border-border bg-card/80">
               <CardContent className="p-8">
-                <h2 className="text-xl font-semibold text-zinc-900 mb-4 flex items-center gap-2">
-                  <ListChecks className="w-5 h-5 text-zinc-600" />
+                <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <ListChecks className="w-5 h-5 text-muted-foreground" />
                   핵심 내용 요약
                 </h2>
-                <ul className="space-y-2 text-zinc-700">
+                <ul className="space-y-2 text-card-foreground">
                   {data.description.map((desc: string, i: number) => (
                     <li key={i} className="leading-relaxed">
                       • {desc}
@@ -187,13 +186,13 @@ export default function AnalysisResultPage() {
             </Card>
 
             {/* 주의 문장 */}
-            <Card className="shadow-md border border-zinc-200 bg-white/80">
+            <Card className="shadow-md border-border bg-card/80">
               <CardContent className="p-8">
-                <h2 className="text-xl font-semibold text-red-600 mb-4 flex items-center gap-2">
+                <h2 className="text-xl font-semibold text-destructive mb-4 flex items-center gap-2">
                   <AlertTriangle className="w-5 h-5" />
                   주의해야 할 문장
                 </h2>
-                <ul className="space-y-2 text-zinc-700">
+                <ul className="space-y-2 text-card-foreground">
                   {data.highlights.map((item: string, i: number) => (
                     <li key={i}>⚠️ {item}</li>
                   ))}
@@ -203,10 +202,10 @@ export default function AnalysisResultPage() {
 
             {/* 분석 지표 */}
             {data.metrics && (
-              <Card className="shadow-md border border-zinc-200 bg-white/80">
+              <Card className="shadow-md border-border bg-card/80">
                 <CardContent className="p-8">
-                  <h2 className="text-xl font-semibold flex items-center gap-2 text-zinc-900 mb-4">
-                    <BarChart2 className="w-5 h-5 text-zinc-600" />
+                  <h2 className="text-xl font-semibold flex items-center gap-2 text-foreground mb-4">
+                    <BarChart2 className="w-5 h-5 text-muted-foreground" />
                     분석 지표
                   </h2>
 
@@ -217,18 +216,17 @@ export default function AnalysisResultPage() {
                       { label: "위험도", value: data.metrics.risk },
                     ].map((metric) => (
                       <div key={metric.label}>
-                        <div className="flex justify-between text-sm text-zinc-700 mb-1">
+                        <div className="flex justify-between text-sm text-card-foreground mb-1">
                           <span>{metric.label}</span>
                           <span>{metric.value}%</span>
                         </div>
 
-                        <div className="w-full h-3 bg-zinc-200 rounded-full overflow-hidden">
+                        <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
                           <div
-                            className={`h-full rounded-full ${
-                              metric.label === "위험도"
-                                ? "bg-red-400"
-                                : "bg-purple-500"
-                            }`}
+                            className={`h-full rounded-full ${metric.label === "위험도"
+                                ? "bg-destructive"
+                                : "bg-primary"
+                              }`}
                             style={{ width: `${metric.value}%` }}
                           ></div>
                         </div>
@@ -256,7 +254,7 @@ export default function AnalysisResultPage() {
         <div className="max-w-5xl mx-auto flex justify-center gap-4 mt-12">
           {/* 다시 업로드하기 */}
           <Button
-            className="px-8 py-3 text-lg bg-white border border-zinc-300 text-zinc-900 hover:bg-zinc-100"
+            className="px-8 py-3 text-lg bg-background border border-border text-foreground hover:bg-accent"
             onClick={() => router.push("/upload")}
           >
             다시 업로드하기
@@ -264,7 +262,7 @@ export default function AnalysisResultPage() {
 
           {/* 평가하기 */}
           <Button
-            className="px-8 py-3 text-lg bg-purple-600 text-white hover:bg-purple-700"
+            className="px-8 py-3 text-lg bg-primary text-primary-foreground hover:bg-primary/90"
             onClick={() => setIsOpen(true)}
           >
             평가하기
@@ -274,12 +272,12 @@ export default function AnalysisResultPage() {
 
       {/* 평가 Dialog */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[450px] rounded-xl shadow-2xl border border-zinc-200 bg-white/90 backdrop-blur-xl">
+        <DialogContent className="sm:max-w-[450px] rounded-xl shadow-2xl border-border bg-card/90 backdrop-blur-xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-zinc-900">
+            <DialogTitle className="text-xl font-bold text-foreground">
               분석 결과 평가하기
             </DialogTitle>
-            <DialogDescription className="text-zinc-600">
+            <DialogDescription className="text-muted-foreground">
               서비스 품질 향상을 위해 의견을 남겨주세요 😊
             </DialogDescription>
           </DialogHeader>
@@ -290,9 +288,8 @@ export default function AnalysisResultPage() {
               <button
                 key={num}
                 onClick={() => setRating(num)}
-                className={`text-4xl transition-all ${
-                  rating >= num ? "text-yellow-400 scale-110" : "text-zinc-300"
-                }`}
+                className={`text-4xl transition-all ${rating >= num ? "text-yellow-400 scale-110" : "text-muted"
+                  }`}
               >
                 ★
               </button>
@@ -304,7 +301,7 @@ export default function AnalysisResultPage() {
             placeholder="분석 결과에 대한 의견을 남겨주세요"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            className="h-28 resize-none bg-white/60"
+            className="h-28 resize-none bg-background/60"
           />
 
           <DialogFooter className="mt-4 flex justify-end gap-3">
@@ -318,7 +315,7 @@ export default function AnalysisResultPage() {
 
             <Button
               onClick={handleSubmit}
-              className="px-5 bg-purple-600 text-white hover:bg-purple-700"
+              className="px-5 bg-primary text-primary-foreground hover:bg-primary/90"
             >
               제출하기
             </Button>

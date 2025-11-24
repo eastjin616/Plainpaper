@@ -77,14 +77,14 @@ export default function MyPage() {
 
   return (
     <ProtectedPage>
-      <main className="min-h-screen p-10 bg-gradient-to-b from-zinc-50 to-zinc-100 relative">
+      <main className="min-h-screen p-10 bg-background relative">
 
-        <h1 className="text-3xl font-bold mb-8 text-zinc-900">📂 내 문서</h1>
+        <h1 className="text-3xl font-bold mb-8 text-foreground">📂 내 문서</h1>
 
         {/* 문서 없음 */}
         {docs.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-[60vh] text-zinc-500">
-            <FileText className="w-14 h-14 mb-4 text-zinc-400" />
+          <div className="flex flex-col items-center justify-center h-[60vh] text-muted-foreground">
+            <FileText className="w-14 h-14 mb-4 text-muted-foreground/50" />
             <p className="text-lg font-medium">업로드한 문서가 없습니다</p>
             <p className="text-sm">지금 바로 새로운 문서를 업로드해보세요</p>
 
@@ -102,21 +102,21 @@ export default function MyPage() {
           {docs.map((doc) => (
             <Card
               key={doc.document_id}
-              className="group shadow-sm border border-zinc-200 bg-white/80 backdrop-blur hover:shadow-lg transition relative cursor-pointer"
+              className="group shadow-sm border-border bg-card/80 backdrop-blur hover:shadow-lg transition relative cursor-pointer"
               onClick={() => router.push(`/analysis/${doc.document_id}`)}
             >
               <CardContent className="p-5">
 
                 {/* 상단 파일명 */}
                 <div className="flex items-center gap-2 mb-3">
-                  <FileText className="w-5 h-5 text-zinc-500" />
-                  <h2 className="font-medium text-zinc-900 truncate">
+                  <FileText className="w-5 h-5 text-muted-foreground" />
+                  <h2 className="font-medium text-card-foreground truncate">
                     {doc.file_name}
                   </h2>
                 </div>
 
                 {/* 요약 본문 */}
-                <p className="text-sm text-zinc-600 line-clamp-2 mb-4">
+                <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
                   {doc.summary || "요약 준비 중..."}
                 </p>
 
@@ -134,7 +134,7 @@ export default function MyPage() {
                 )}
 
                 {/* 생성일 */}
-                <div className="mt-3 flex items-center gap-1 text-xs text-zinc-500">
+                <div className="mt-3 flex items-center gap-1 text-xs text-muted-foreground">
                   <Clock className="w-3 h-3" />
                   {doc.created_at}
                 </div>
@@ -145,7 +145,7 @@ export default function MyPage() {
                     e.stopPropagation();
                     handleDelete(doc.document_id);
                   }}
-                  className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition bg-red-100 text-red-600 hover:bg-red-200 p-1.5 rounded-full"
+                  className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition bg-destructive/10 text-destructive hover:bg-destructive/20 p-1.5 rounded-full"
                 >
                   <Trash2 size={16} />
                 </button>
@@ -157,7 +157,7 @@ export default function MyPage() {
         {/* ➕ 플로팅 업로드 버튼 */}
         <button
           onClick={() => router.push("/upload")}
-          className="fixed bottom-8 right-8 bg-purple-600 hover:bg-purple-700 text-white p-4 rounded-full shadow-xl transition"
+          className="fixed bottom-8 right-8 bg-primary hover:bg-primary/90 text-primary-foreground p-4 rounded-full shadow-xl transition"
         >
           <Plus size={24} />
         </button>

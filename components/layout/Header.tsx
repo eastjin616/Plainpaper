@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { ModeToggle } from "@/components/ui/mode-toggle";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/_contexts/AuthContext";
 
@@ -9,17 +10,17 @@ export default function Header() {
   const { user, isLoggedIn, logout } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");      
-    localStorage.removeItem("user");       
-    logout();                              
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    logout();
     router.push("/login");
   };
 
   return (
-    <header className="w-full flex justify-between items-center px-8 py-4 border-b border-zinc-200 bg-white/80 backdrop-blur sticky top-0 z-50">
+    <header className="w-full flex justify-between items-center px-8 py-4 border-b border-border bg-background/80 backdrop-blur sticky top-0 z-50">
       {/* 로고 */}
       <h1
-        className="text-xl font-bold text-zinc-900 cursor-pointer"
+        className="text-xl font-bold text-foreground cursor-pointer"
         onClick={() => router.push("/")}
       >
         Plainpaper ✨
@@ -29,14 +30,14 @@ export default function Header() {
       <div className="flex items-center gap-3">
 
         {isLoggedIn && (
-          <span className="text-zinc-700 font-medium">
+          <span className="text-muted-foreground font-medium">
             {user?.name}님 반갑습니다 👋
           </span>
         )}
-
+        <ModeToggle />
         <Button
           variant="ghost"
-          className="text-zinc-700 hover:text-zinc-900"
+          className="text-muted-foreground hover:text-foreground"
           onClick={() => router.push("/mypage")}
         >
           마이페이지
@@ -44,7 +45,7 @@ export default function Header() {
 
         <Button
           variant="outline"
-          className="text-zinc-700 hover:text-zinc-900"
+          className="text-muted-foreground hover:text-foreground"
           onClick={() => router.push("/setting")}
         >
           설정

@@ -7,13 +7,17 @@ export const metadata: Metadata = {
   description: "복잡한 문서를 AI가 쉽게 해석해주는 서비스",
 };
 
+import { Providers } from "./providers";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko">
-      <body className="min-h-screen bg-zinc-50 text-zinc-900">
-        <AuthClientWrapper>
-          <main className="px-6 pt-8">{children}</main>
-        </AuthClientWrapper>
+    <html lang="ko" suppressHydrationWarning>
+      <body className="min-h-screen bg-background text-foreground antialiased">
+        <Providers>
+          <AuthClientWrapper>
+            <main className="px-6 pt-8">{children}</main>
+          </AuthClientWrapper>
+        </Providers>
       </body>
     </html>
   );

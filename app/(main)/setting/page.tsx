@@ -82,17 +82,17 @@ export default function SettingPage() {
 
   return (
     <ProtectedPage>
-      <main className="flex justify-center min-h-screen bg-gradient-to-b from-zinc-50 to-zinc-100 p-8">
+      <main className="flex justify-center min-h-screen bg-background p-8">
         <div className="w-full max-w-xl">
-          <h1 className="text-2xl font-bold mb-6 text-purple-900">설정</h1>
+          <h1 className="text-2xl font-bold mb-6 text-foreground">설정</h1>
 
-          <Card className="shadow-sm border border-zinc-200 bg-white/80">
+          <Card className="shadow-sm border-border bg-card/80">
             <CardContent className="p-6">
-              <h2 className="text-lg font-semibold mb-4">비밀번호 변경</h2>
+              <h2 className="text-lg font-semibold mb-4 text-foreground">비밀번호 변경</h2>
 
               <form className="space-y-4" onSubmit={handleChangePassword}>
                 <div>
-                  <label className="text-sm text-purple-700">현재 비밀번호</label>
+                  <label className="text-sm text-muted-foreground">현재 비밀번호</label>
                   <Input
                     type="password"
                     value={currentPassword}
@@ -102,7 +102,7 @@ export default function SettingPage() {
                 </div>
 
                 <div>
-                  <label className="text-sm text-purple-700">새 비밀번호</label>
+                  <label className="text-sm text-muted-foreground">새 비밀번호</label>
                   <Input
                     type="password"
                     value={newPassword}
@@ -112,7 +112,7 @@ export default function SettingPage() {
                 </div>
 
                 <div>
-                  <label className="text-sm text-purple-700">
+                  <label className="text-sm text-muted-foreground">
                     새 비밀번호 확인
                   </label>
                   <Input
@@ -124,17 +124,17 @@ export default function SettingPage() {
                 </div>
 
                 {error && (
-                  <p className="text-sm text-red-500 whitespace-pre-line">
+                  <p className="text-sm text-destructive whitespace-pre-line">
                     {error}
                   </p>
                 )}
                 {success && (
-                  <p className="text-sm text-emerald-600 whitespace-pre-line">
+                  <p className="text-sm text-green-600 whitespace-pre-line">
                     {success}
                   </p>
                 )}
 
-                <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 text-white" disabled={loading}>
+                <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90" disabled={loading}>
                   {loading ? "변경 중..." : "비밀번호 변경"}
                 </Button>
               </form>
