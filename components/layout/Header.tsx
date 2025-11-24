@@ -20,7 +20,7 @@ export default function Header() {
       {/* 로고 */}
       <h1
         className="text-xl font-bold text-zinc-900 cursor-pointer"
-        onClick={() => router.push("/upload")}
+        onClick={() => router.push("/")}
       >
         Plainpaper ✨
       </h1>
