@@ -43,6 +43,28 @@ export default function Home() {
             </Button>
           </CardContent>
         </Card>
+        <div className="mt-12 w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="p-6 rounded-xl bg-white/70 shadow text-center border border-zinc-200">
+            <h3 className="font-semibold text-zinc-800 text-lg mb-2">📄 문서 요약</h3>
+            <p className="text-sm text-zinc-600">
+              복잡한 약관도 몇 줄 요약으로 빠르게 확인할 수 있어요.
+            </p>
+          </div>
+
+          <div className="p-6 rounded-xl bg-white/70 shadow text-center border border-zinc-200">
+            <h3 className="font-semibold text-zinc-800 text-lg mb-2">⚠️ 위험 조항 분석</h3>
+            <p className="text-sm text-zinc-600">
+              소비자에게 불리한 위험 문장을 자동으로 탐지합니다.
+            </p>
+          </div>
+
+          <div className="p-6 rounded-xl bg-white/70 shadow text-center border border-zinc-200">
+            <h3 className="font-semibold text-zinc-800 text-lg mb-2">📊 금액·기간 자동 추출</h3>
+            <p className="text-sm text-zinc-600">
+              금액·환급률·납입 기간을 한눈에 보게 표로 정리해드립니다.
+            </p>
+          </div>
+      </div>
       </main>
     </ProtectedPage>
   );
