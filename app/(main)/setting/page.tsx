@@ -84,7 +84,7 @@ export default function SettingPage() {
     <ProtectedPage>
       <main className="flex justify-center min-h-screen bg-gradient-to-b from-zinc-50 to-zinc-100 p-8">
         <div className="w-full max-w-xl">
-          <h1 className="text-2xl font-bold mb-6 text-zinc-900">설정</h1>
+          <h1 className="text-2xl font-bold mb-6 text-purple-900">설정</h1>
 
           <Card className="shadow-sm border border-zinc-200 bg-white/80">
             <CardContent className="p-6">
@@ -92,7 +92,7 @@ export default function SettingPage() {
 
               <form className="space-y-4" onSubmit={handleChangePassword}>
                 <div>
-                  <label className="text-sm text-zinc-600">현재 비밀번호</label>
+                  <label className="text-sm text-purple-700">현재 비밀번호</label>
                   <Input
                     type="password"
                     value={currentPassword}
@@ -102,7 +102,7 @@ export default function SettingPage() {
                 </div>
 
                 <div>
-                  <label className="text-sm text-zinc-600">새 비밀번호</label>
+                  <label className="text-sm text-purple-700">새 비밀번호</label>
                   <Input
                     type="password"
                     value={newPassword}
@@ -112,7 +112,7 @@ export default function SettingPage() {
                 </div>
 
                 <div>
-                  <label className="text-sm text-zinc-600">
+                  <label className="text-sm text-purple-700">
                     새 비밀번호 확인
                   </label>
                   <Input
@@ -134,7 +134,7 @@ export default function SettingPage() {
                   </p>
                 )}
 
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 text-white" disabled={loading}>
                   {loading ? "변경 중..." : "비밀번호 변경"}
                 </Button>
               </form>
