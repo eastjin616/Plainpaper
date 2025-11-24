@@ -40,7 +40,7 @@ export default function Home() {
             <div className="flex flex-col gap-2 text-xs text-muted-foreground">
               <div className="flex items-center justify-center gap-2">
                 <FileText className="w-4 h-4 text-muted-foreground/80" />
-                <span>PDF 한 번 업로드로 핵심만 빠르게 확인</span>
+                <span>PDF 한 번 업로드로 핵심만 빠르게 확인 </span>
               </div>
             </div>
 
