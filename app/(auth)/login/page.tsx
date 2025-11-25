@@ -49,16 +49,18 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex items-center justify-center min-h-screen bg-gradient-to-b from-zinc-50 to-zinc-100">
-      <Card className="w-[420px] p-8 shadow-xl border border-white/50 bg-white/80 backdrop-blur-xl">
+    <main className="flex items-center justify-center min-h-screen bg-background">
+      <Card className="w-[420px] p-8 shadow-xl border border-border bg-card/80 backdrop-blur-xl">
         <CardContent>
-          <h1 className="text-3xl font-bold text-center mb-6 text-zinc-900">Plainpaper</h1>
+          <h1 className="text-3xl font-bold text-center mb-6 text-foreground">
+            Plainpaper
+          </h1>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="text-sm text-zinc-600">이메일</label>
+              <label className="text-sm text-muted-foreground">이메일</label>
               <Input
-                className="bg-white/80"
+                className="bg-card/60"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -67,9 +69,9 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="text-sm text-zinc-600">비밀번호</label>
+              <label className="text-sm text-muted-foreground">비밀번호</label>
               <Input
-                className="bg-white/80"
+                className="bg-card/60"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -79,14 +81,14 @@ export default function LoginPage() {
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
 
-            <Button className="w-full text-lg font-medium bg-purple-600 hover:bg-purple-700" type="submit">
+            <Button className="w-full text-lg font-medium" type="submit">
               {loading ? "로그인 중..." : "로그인"}
             </Button>
           </form>
 
-          <p className="text-center text-sm text-zinc-600 mt-6">
+          <p className="text-center text-sm text-muted-foreground mt-6">
             계정이 없으신가요?{" "}
-            <Link href="/signup" className="font-semibold text-purple-700 hover:underline">
+            <Link href="/signup" className="font-semibold text-primary hover:underline">
               회원가입
             </Link>
           </p>

@@ -84,36 +84,28 @@ export default function SignupPage() {
   };
 
   return (
-    <main className="flex items-center justify-center min-h-screen bg-gradient-to-b from-zinc-50 to-zinc-100">
-      <Card className="w-[420px] p-8 shadow-xl border border-white/50 bg-white/80 backdrop-blur-xl">
+    <main className="flex items-center justify-center min-h-screen bg-background">
+      <Card className="w-[420px] p-8 shadow-xl border border-border bg-card/80 backdrop-blur-xl">
         <CardContent>
-          <h1 className="text-3xl font-bold text-center mb-6 text-zinc-900">Plainpaper</h1>
+          <h1 className="text-3xl font-bold text-center mb-6 text-foreground">Plainpaper</h1>
 
           <form onSubmit={handleSignup} className="space-y-4">
-
-            {/* 이름 */}
             <div>
-              <label className="text-sm text-zinc-600">이름</label>
-              <Input className="bg-white/80" value={name} onChange={(e) => setName(e.target.value)} required />
+              <label className="text-sm text-muted-foreground">이름</label>
+              <Input className="bg-card/60" value={name} onChange={(e) => setName(e.target.value)} required />
             </div>
 
-            {/* 이메일 */}
             <div>
-              <label className="text-sm text-zinc-600">이메일</label>
+              <label className="text-sm text-muted-foreground">이메일</label>
               <div className="flex gap-2">
                 <Input
-                  className="bg-white/80"
+                  className="bg-card/60"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
-                <Button
-                  type="button"
-                  onClick={sendCode}
-                  disabled={!email}
-                  className="bg-purple-600 hover:bg-purple-700"
-                >
+                <Button type="button" onClick={sendCode} disabled={!email}>
                   인증
                 </Button>
               </div>
@@ -121,12 +113,12 @@ export default function SignupPage() {
               {serverCodeSent && !emailVerified && (
                 <div className="flex gap-2 mt-2">
                   <Input
-                    className="bg-white/80"
+                    className="bg-card/60"
                     placeholder="인증코드 입력"
                     value={verificationCode}
                     onChange={(e) => setVerificationCode(e.target.value)}
                   />
-                  <Button className="bg-purple-600 hover:bg-purple-700" type="button" onClick={verifyCode}>
+                  <Button type="button" onClick={verifyCode}>
                     확인
                   </Button>
                 </div>
@@ -137,11 +129,10 @@ export default function SignupPage() {
               )}
             </div>
 
-            {/* 비밀번호 */}
             <div>
-              <label className="text-sm text-zinc-600">비밀번호</label>
+              <label className="text-sm text-muted-foreground">비밀번호</label>
               <Input
-                className="bg-white/80"
+                className="bg-card/60"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -149,11 +140,10 @@ export default function SignupPage() {
               />
             </div>
 
-            {/* 비밀번호 확인 */}
             <div>
-              <label className="text-sm text-zinc-600">비밀번호 확인</label>
+              <label className="text-sm text-muted-foreground">비밀번호 확인</label>
               <Input
-                className="bg-white/80"
+                className="bg-card/60"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -164,18 +154,14 @@ export default function SignupPage() {
             {error && <p className="text-red-500 text-sm">{error}</p>}
             {msg && <p className="text-green-600 text-sm">{msg}</p>}
 
-            <Button
-              type="submit"
-              disabled={!emailVerified}
-              className="w-full text-lg bg-purple-600 hover:bg-purple-700"
-            >
+            <Button type="submit" disabled={!emailVerified} className="w-full text-lg">
               회원가입
             </Button>
           </form>
 
-          <p className="text-center text-sm text-zinc-600 mt-6">
+          <p className="text-center text-sm text-muted-foreground mt-6">
             이미 계정이 있으신가요?{" "}
-            <Link href="/login" className="font-semibold text-purple-700 hover:underline">
+            <Link href="/login" className="font-semibold text-primary hover:underline">
               로그인
             </Link>
           </p>
