@@ -12,13 +12,14 @@
 
 ### ▸ 메인 기능 (PDF 분석 흐름)
 
-https://github.com/user-attachments/assets/da50051d-3f40-4c32-8ac0-14862e1e3cf7
+https://github.com/user-attachments/assets/9778dc1e-55f7-4709-bc38-0a9221cb2881
 
 ---
 
 ### ▸ AI 채팅 기능
 
-https://github.com/user-attachments/assets/2285a11f-a7cc-4144-b779-27d1a8b4236b
+https://github.com/user-attachments/assets/212322ce-aa8d-4292-8ed6-caac534350f8
+
 
 ---
 
