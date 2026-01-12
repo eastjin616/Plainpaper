@@ -92,6 +92,14 @@ export default function LoginPage() {
               회원가입
             </Link>
           </p>
+          <p className="text-center text-sm text-muted-foreground mt-2">
+            <Link
+              href="/forgot-password"
+              className="font-semibold text-primary hover:underline"
+            >
+              비밀번호를 잊으셨나요?
+            </Link>
+          </p>
         </CardContent>
       </Card>
     </main>
