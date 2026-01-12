@@ -3,7 +3,13 @@
 import { useState } from "react";
 
 // 👇 Sheet (사이드 패널)
-import { Sheet, SheetContent, SheetHeader } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 
 // 👇 DropdownMenu (ChatGPT 모델 선택 스타일)
 import {
@@ -78,8 +84,10 @@ export default function ChatSidebar({
         className="w-[420px] p-6 rounded-l-xl border-l shadow-xl bg-background"
       >
         <SheetHeader>
-          <h2 className="text-xl font-bold">AI 문서 질문하기</h2>
-          <p className="text-sm text-muted-foreground">문서 내용을 기반으로 답변합니다.</p>
+          <SheetTitle className="text-xl font-bold">AI 문서 질문하기</SheetTitle>
+          <SheetDescription className="text-sm text-muted-foreground">
+            문서 내용을 기반으로 답변합니다.
+          </SheetDescription>
         </SheetHeader>
 
         {/* 🔥 모델 선택 Dropdown (너가 말한 ChatGPT 모델 선택 UI) */}
