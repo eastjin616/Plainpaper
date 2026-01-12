@@ -54,7 +54,7 @@ export default function AnalysisLoadingPage() {
       </div>
 
       {/* 🔥 진행률 카드 */}
-      <div className="backdrop-blur-md bg-card/50 rounded-xl shadow-xl border border-border px-8 py-6 w-[380px] animate-[pulse_3s_ease-in-out_infinite]">
+      <div className="backdrop-blur-md bg-card/50 rounded-xl shadow-xl border border-border px-6 sm:px-8 py-6 w-full max-w-[380px] animate-[pulse_3s_ease-in-out_infinite]">
 
         <h2 className="text-xl font-semibold text-foreground text-center mb-2">
           문서를 분석하고 있습니다…

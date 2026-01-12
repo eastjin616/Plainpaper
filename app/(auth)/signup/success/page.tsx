@@ -26,7 +26,7 @@ export default function SignupSuccessPage() {
         gravity={0.25}
       />
 
-      <Card className="w-[400px] p-8 text-center shadow-xl border border-border bg-card/80 backdrop-blur-xl relative z-10">
+      <Card className="w-full max-w-[400px] mx-4 p-6 sm:p-8 text-center shadow-xl border border-border bg-card/80 backdrop-blur-xl relative z-10">
         <CardContent>
           <h1 className="text-3xl font-bold text-foreground mb-2">🎉 가입 완료!</h1>
           <p className="text-muted-foreground mb-1">회원가입이 성공적으로 완료되었습니다.</p>

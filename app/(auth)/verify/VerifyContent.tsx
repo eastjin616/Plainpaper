@@ -45,7 +45,7 @@ export default function VerifyContent() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-zinc-50 to-zinc-100">
-      <Card className="w-[420px] p-8 text-center shadow-xl border border-zinc-200 bg-white/80 backdrop-blur">
+      <Card className="w-full max-w-[420px] mx-4 p-6 sm:p-8 text-center shadow-xl border border-zinc-200 bg-white/80 backdrop-blur">
         <CardContent className="space-y-4">
           <h1 className="text-2xl font-bold text-zinc-900 mb-2">이메일 인증</h1>
 

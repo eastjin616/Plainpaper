@@ -81,7 +81,7 @@ export default function ChatSidebar({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-[420px] p-6 rounded-l-xl border-l shadow-xl bg-background"
+        className="w-full sm:w-[420px] p-6 rounded-l-xl border-l shadow-xl bg-background"
       >
         <SheetHeader>
           <SheetTitle className="text-xl font-bold">AI 문서 질문하기</SheetTitle>
