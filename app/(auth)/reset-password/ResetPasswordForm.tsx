@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,9 @@ type ResetPasswordFormProps = {
 
 export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const tokenFromQuery = searchParams.get("token");
+  const effectiveToken = token ?? tokenFromQuery;
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -25,7 +28,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     setError("");
     setSuccess("");
 
-    if (!token) {
+    if (!effectiveToken) {
       setError("재설정 토큰이 없습니다. 메일의 링크를 확인해주세요.");
       return;
     }
@@ -42,7 +45,10 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token, new_password: newPassword }),
+          body: JSON.stringify({
+            token: effectiveToken,
+            new_password: newPassword,
+          }),
         }
       );
 
