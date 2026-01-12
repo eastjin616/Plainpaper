@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Sparkles } from "lucide-react";
 import ActivitySection from "@/components/dashboard/ActivitySection";
 import AppsSection from "@/components/dashboard/AppsSection";
@@ -10,6 +10,7 @@ import type {
   AppItem,
   WorkspaceItem,
 } from "@/components/dashboard/types";
+import { useAuth } from "@/app/_contexts/AuthContext";
 
 const workspaces: WorkspaceItem[] = [
   {
@@ -102,6 +103,14 @@ const apps: AppItem[] = [
 export default function Dashboard() {
   const [activeWorkspaceId, setActiveWorkspaceId] = useState(workspaces[0]?.id);
   const [mode, setMode] = useState<"admin" | "user">("admin");
+  const { user, loading } = useAuth();
+  const isAdmin = user?.role === "admin";
+  const effectiveMode = isAdmin ? mode : "user";
+
+  useEffect(() => {
+    if (loading) return;
+    setMode(isAdmin ? "admin" : "user");
+  }, [isAdmin, loading]);
   const activeWorkspace = useMemo(
     () => workspaces.find((item) => item.id === activeWorkspaceId) ?? workspaces[0],
     [activeWorkspaceId]
@@ -136,11 +145,12 @@ export default function Dashboard() {
             <button
               type="button"
               onClick={() => setMode("admin")}
+              disabled={!isAdmin}
               className={`rounded-full px-4 py-2 font-medium transition ${
-                mode === "admin"
+                effectiveMode === "admin"
                   ? "bg-primary text-primary-foreground shadow"
                   : "text-muted-foreground hover:text-foreground"
-              }`}
+              } ${!isAdmin ? "cursor-not-allowed opacity-60" : ""}`}
             >
               관리자 모드
             </button>
@@ -148,7 +158,7 @@ export default function Dashboard() {
               type="button"
               onClick={() => setMode("user")}
               className={`rounded-full px-4 py-2 font-medium transition ${
-                mode === "user"
+                effectiveMode === "user"
                   ? "bg-primary text-primary-foreground shadow"
                   : "text-muted-foreground hover:text-foreground"
               }`}
@@ -164,10 +174,10 @@ export default function Dashboard() {
             activeWorkspace={activeWorkspace}
             onSelectWorkspace={setActiveWorkspaceId}
           />
-          {mode === "admin" && <ActivitySection activities={activities} />}
+          {effectiveMode === "admin" && <ActivitySection activities={activities} />}
         </section>
 
-        <AppsSection apps={apps} mode={mode} />
+        <AppsSection apps={apps} mode={effectiveMode} />
       </div>
     </main>
   );
