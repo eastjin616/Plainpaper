@@ -98,7 +98,7 @@ const apps: AppItem[] = [
     iconName: "line-chart",
   },
 ];
-
+//dashboard page
 export default function Dashboard() {
   const [activeWorkspaceId, setActiveWorkspaceId] = useState(workspaces[0]?.id);
   const [mode, setMode] = useState<"admin" | "user">("admin");
