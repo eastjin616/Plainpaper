@@ -92,8 +92,9 @@ const apps: AppItem[] = [
     id: "analytics",
     name: "Analytics",
     description: "워크스페이스 전반의 문서 흐름을 한눈에.",
-    status: "soon",
-    cta: "Coming Soon",
+    status: "live",
+    cta: "열기",
+    href: "/analytics",
     iconName: "line-chart",
   },
 ];
