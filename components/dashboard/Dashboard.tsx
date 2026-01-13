@@ -85,8 +85,9 @@ const apps: AppItem[] = [
     id: "qa",
     name: "Q&A Board",
     description: "문서 기반 질의응답과 토론이 모이는 공간.",
-    status: "soon",
-    cta: "Coming Soon",
+    status: "live",
+    cta: "열기",
+    href: "/board",
     iconName: "message-circle-question",
   },
   {
