@@ -11,49 +11,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useEffect, useMemo, useState } from "react";
 
-const boardItems = [
-  {
-    id: "B-3021",
-    title: "보험 약관에서 보장 예외 조항이 어디에 있나요?",
-    author: "김다은",
-    createdAt: "2025-01-12 14:32",
-    views: 142,
-    status: "answered",
-  },
-  {
-    id: "B-3018",
-    title: "대출 계약서에서 중도상환 수수료 계산 방식",
-    author: "이준호",
-    createdAt: "2025-01-11 09:18",
-    views: 98,
-    status: "waiting",
-  },
-  {
-    id: "B-3013",
-    title: "서비스 이용약관 개정 이력 어디서 확인하나요?",
-    author: "박서연",
-    createdAt: "2025-01-10 16:05",
-    views: 76,
-    status: "answered",
-  },
-  {
-    id: "B-3007",
-    title: "개인정보 처리방침에서 보관 기간을 알고 싶어요.",
-    author: "정민석",
-    createdAt: "2025-01-09 11:42",
-    views: 65,
-    status: "waiting",
-  },
-  {
-    id: "B-3002",
-    title: "계약서 주요 리스크 체크리스트 공유합니다.",
-    author: "최은지",
-    createdAt: "2025-01-08 17:26",
-    views: 184,
-    status: "answered",
-  },
-];
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const statusStyles: Record<string, string> = {
   waiting: "border border-amber-200 bg-amber-100/70 text-amber-800",
@@ -65,7 +25,134 @@ const statusLabels: Record<string, string> = {
   answered: "답변완료",
 };
 
+type BoardItem = {
+  id: string;
+  title: string;
+  author: string;
+  createdAt: string;
+  views: number;
+  status: string;
+};
+
+const formatDate = (date: Date) => date.toISOString().slice(0, 10);
+
+const getDefaultDateRange = () => {
+  const today = new Date();
+  const start = new Date(today.getFullYear(), today.getMonth(), 1);
+  const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  return {
+    startDate: formatDate(start),
+    endDate: formatDate(end),
+  };
+};
+
+const normalizeBoardItem = (raw: any): BoardItem => {
+  const answered = Boolean(raw?.accepted_comment_);
+  return {
+    id: raw?.id ?? raw?.board_id ?? "",
+    title: raw?.title ?? raw?.subject ?? "",
+    author: raw?.created_by ?? raw?.author ?? raw?.writer ?? "",
+    createdAt: raw?.created_at ?? raw?.createdAt ?? "",
+    views: Number(raw?.view_count ?? raw?.views ?? 0),
+    status: answered ? "answered" : "waiting",
+  };
+};
+
 export default function BoardPage() {
+  const [items, setItems] = useState<BoardItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"latest" | "views">("latest");
+  const [statusFilter, setStatusFilter] = useState<"all" | "answered" | "waiting">(
+    "all"
+  );
+  const [page] = useState(1);
+  const [size] = useState(20);
+
+  useEffect(() => {
+    const { startDate, endDate } = getDefaultDateRange();
+
+    async function loadBoards() {
+      try {
+        setLoading(true);
+        const params = new URLSearchParams({
+          page: String(page),
+          size: String(size),
+          start_date: startDate,
+          end_date: endDate,
+        });
+
+        const headers: HeadersInit = {};
+        const token = localStorage.getItem("token");
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+
+        const res = await fetch(`${API_URL}/board?${params.toString()}`, {
+          headers,
+          cache: "no-store",
+        });
+
+        if (!res.ok) {
+          const errorPayload = await res.json().catch(() => null);
+          const message = errorPayload?.detail ?? "게시판 목록을 불러오지 못했습니다.";
+          throw new Error(message);
+        }
+
+        const json = await res.json();
+        const rawItems = Array.isArray(json)
+          ? json
+          : Array.isArray(json?.items)
+          ? json.items
+          : Array.isArray(json?.boards)
+          ? json.boards
+          : Array.isArray(json?.data?.items)
+          ? json.data.items
+          : Array.isArray(json?.data)
+          ? json.data
+          : [];
+
+        setItems(rawItems.map(normalizeBoardItem));
+        setError(null);
+      } catch (err) {
+        console.error("🔥 게시판 목록 불러오기 실패:", err);
+        setError(
+          err instanceof Error ? err.message : "게시판 데이터를 불러오지 못했습니다."
+        );
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadBoards();
+  }, [page, size]);
+
+  const filteredItems = useMemo(() => {
+    const lowered = query.trim().toLowerCase();
+    const filtered = items.filter((item) => {
+      const matchesQuery =
+        !lowered ||
+        item.title.toLowerCase().includes(lowered) ||
+        item.author.toLowerCase().includes(lowered);
+      const matchesStatus =
+        statusFilter === "all" ? true : item.status === statusFilter;
+      return matchesQuery && matchesStatus;
+    });
+
+    const sorted = [...filtered].sort((a, b) => {
+      if (sortBy === "views") {
+        return b.views - a.views;
+      }
+      const aTime = Date.parse(a.createdAt) || 0;
+      const bTime = Date.parse(b.createdAt) || 0;
+      return bTime - aTime;
+    });
+
+    return sorted;
+  }, [items, query, sortBy, statusFilter]);
+
   return (
     <ProtectedPage>
       <main className="relative min-h-screen bg-background">
@@ -110,19 +197,19 @@ export default function BoardPage() {
                 <div className="flex items-center justify-between">
                   <span>전체 게시글</span>
                   <span className="text-lg font-semibold text-foreground">
-                    {boardItems.length}건
+                    {items.length}건
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>답변 완료</span>
                   <span className="text-lg font-semibold text-foreground">
-                    {boardItems.filter((item) => item.status === "answered").length}건
+                    {items.filter((item) => item.status === "answered").length}건
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>답변 대기</span>
                   <span className="text-lg font-semibold text-foreground">
-                    {boardItems.filter((item) => item.status === "waiting").length}건
+                    {items.filter((item) => item.status === "waiting").length}건
                   </span>
                 </div>
               </CardContent>
@@ -136,15 +223,35 @@ export default function BoardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-3">
-                <Input placeholder="예: 개인정보, 리스크, FAQ" />
+                <Input
+                  placeholder="예: 개인정보, 리스크, FAQ"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                />
                 <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" size="default">
+                  <Button
+                    variant={sortBy === "latest" ? "default" : "outline"}
+                    size="default"
+                    onClick={() => setSortBy("latest")}
+                  >
                     최신순
                   </Button>
-                  <Button variant="outline" size="default">
+                  <Button
+                    variant={sortBy === "views" ? "default" : "outline"}
+                    size="default"
+                    onClick={() => setSortBy("views")}
+                  >
                     조회수
                   </Button>
-                  <Button variant="outline" size="default">
+                  <Button
+                    variant={statusFilter === "waiting" ? "default" : "outline"}
+                    size="default"
+                    onClick={() =>
+                      setStatusFilter(
+                        statusFilter === "waiting" ? "all" : "waiting"
+                      )
+                    }
+                  >
                     답변대기
                   </Button>
                 </div>
@@ -155,7 +262,7 @@ export default function BoardPage() {
           <section className="flex flex-col gap-4">
             <div className="flex items-center justify-between text-base text-muted-foreground">
               <span>
-                총 <strong className="text-foreground">{boardItems.length}</strong>건
+                총 <strong className="text-foreground">{filteredItems.length}</strong>건
               </span>
               <span>최근 업데이트 기준</span>
             </div>
@@ -170,7 +277,26 @@ export default function BoardPage() {
                   <span className="text-center">조회</span>
                 </div>
                 <div className="divide-y divide-border/60">
-                  {boardItems.map((item) => (
+                  {loading && (
+                    <div className="px-6 py-10 text-center text-muted-foreground">
+                      게시판을 불러오는 중입니다.
+                    </div>
+                  )}
+                  {!loading && error && (
+                    <div className="px-6 py-10 text-center text-destructive">
+                      {error}
+                    </div>
+                  )}
+                  {!loading && !error && filteredItems.length === 0 && (
+                    <div className="px-6 py-10 text-center text-muted-foreground">
+                      {items.length === 0 && !query.trim() && statusFilter === "all"
+                        ? "게시판이 없습니다."
+                        : "조건에 맞는 게시글이 없습니다."}
+                    </div>
+                  )}
+                  {!loading &&
+                    !error &&
+                    filteredItems.map((item) => (
                     <div
                       key={item.id}
                       className="flex flex-col gap-3 px-6 py-4 transition hover:bg-muted/40 md:grid md:grid-cols-[90px_minmax(0,1fr)_140px_180px_90px] md:items-center"
@@ -178,12 +304,15 @@ export default function BoardPage() {
                       <div className="text-base font-medium text-foreground">{item.id}</div>
                       <div className="flex flex-col gap-2">
                         <span
-                          className={`w-fit rounded-full px-2.5 py-1 text-sm font-medium ${statusStyles[item.status]}`}
+                          className={`w-fit rounded-full px-2.5 py-1 text-sm font-medium ${
+                            statusStyles[item.status] ??
+                            "border border-muted-foreground/30 bg-muted/40 text-muted-foreground"
+                          }`}
                         >
-                          {statusLabels[item.status]}
+                          {statusLabels[item.status] ?? item.status}
                         </span>
                         <Link
-                          href="/board/detail"
+                          href={`/board/${item.id}`}
                           className="text-base font-semibold text-foreground hover:underline"
                         >
                           {item.title}
