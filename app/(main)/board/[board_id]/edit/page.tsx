@@ -1,7 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import ProtectedPage from "@/app/_contexts/ProtectedPage";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,14 +17,64 @@ import { Textarea } from "@/components/ui/textarea";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export default function BoardCreatePage() {
+type BoardDetail = {
+  title: string;
+  content: string;
+};
+
+const normalizeBoardDetail = (raw: any): BoardDetail => ({
+  title: raw?.title ?? raw?.subject ?? "",
+  content: raw?.contents ?? raw?.content ?? raw?.question ?? "",
+});
+
+export default function BoardEditPage() {
+  const params = useParams();
   const router = useRouter();
+  const boardId = params.board_id as string;
+
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async () => {
+  useEffect(() => {
+    async function loadDetail() {
+      if (!boardId) return;
+      try {
+        setLoading(true);
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${API_URL}/board/${boardId}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          cache: "no-store",
+        });
+
+        if (!res.ok) {
+          const errorPayload = await res.json().catch(() => null);
+          const message = errorPayload?.detail ?? "게시물 정보를 불러오지 못했습니다.";
+          throw new Error(message);
+        }
+
+        const json = await res.json();
+        const rawDetail = json?.data ?? json?.board ?? json;
+        const normalized = normalizeBoardDetail(rawDetail);
+        setTitle(normalized.title);
+        setContent(normalized.content);
+        setError(null);
+      } catch (err) {
+        console.error("🔥 게시물 불러오기 실패:", err);
+        setError(
+          err instanceof Error ? err.message : "게시물 정보를 불러오지 못했습니다."
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadDetail();
+  }, [boardId]);
+
+  const handleSave = async () => {
     if (!title.trim() || !content.trim()) {
       setError("제목과 내용을 모두 입력해주세요.");
       return;
@@ -33,8 +84,8 @@ export default function BoardCreatePage() {
       setSaving(true);
       setError(null);
       const token = localStorage.getItem("token");
-      const res = await fetch(`${API_URL}/board`, {
-        method: "POST",
+      const res = await fetch(`${API_URL}/board/${boardId}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -44,23 +95,14 @@ export default function BoardCreatePage() {
 
       if (!res.ok) {
         const errorPayload = await res.json().catch(() => null);
-        const message = errorPayload?.detail ?? "게시물 등록에 실패했습니다.";
+        const message = errorPayload?.detail ?? "게시물 수정에 실패했습니다.";
         throw new Error(message);
       }
 
-      const json = await res.json();
-      const createdId =
-        json?.board_id ??
-        json?.id ??
-        json?.data?.board_id ??
-        json?.data?.id ??
-        json?.data?.board?.id ??
-        json?.data?.board_id;
-
-      router.push(createdId ? `/board/${createdId}` : "/board");
+      router.push(`/board/${boardId}`);
     } catch (err) {
-      console.error("🔥 게시물 등록 실패:", err);
-      setError(err instanceof Error ? err.message : "게시물 등록에 실패했습니다.");
+      console.error("🔥 게시물 수정 실패:", err);
+      setError(err instanceof Error ? err.message : "게시물 수정에 실패했습니다.");
     } finally {
       setSaving(false);
     }
@@ -82,25 +124,29 @@ export default function BoardCreatePage() {
             <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">
               Q&amp;A Board
             </p>
-            <h1 className="text-4xl font-semibold text-foreground">새 게시물 작성</h1>
+            <h1 className="text-4xl font-semibold text-foreground">게시물 수정</h1>
             <p className="text-base text-muted-foreground">
-              궁금한 점이나 공유하고 싶은 정보를 정리해서 남겨주세요.
+              제목과 내용을 편집하고 변경 사항을 저장하세요.
             </p>
           </section>
 
           <Card className="border border-border/60 bg-background/80">
             <CardHeader className="gap-2 border-b border-border/60 pb-4">
-              <CardTitle className="text-xl">내용 작성</CardTitle>
+              <CardTitle className="text-xl">내용 편집</CardTitle>
               <CardDescription className="text-base">
-                제목과 내용을 작성한 뒤 게시물을 등록할 수 있습니다.
+                변경한 내용은 저장 후 바로 반영됩니다.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              {loading && (
+                <div className="text-sm text-muted-foreground">
+                  게시물 정보를 불러오는 중입니다.
+                </div>
+              )}
               <div>
                 <label className="block mb-2 text-base font-medium">제목</label>
                 <Input
                   type="text"
-                  placeholder="게시물 제목을 입력하세요"
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
                   className="w-full text-base"
@@ -109,21 +155,18 @@ export default function BoardCreatePage() {
               <div>
                 <label className="block mb-2 text-base font-medium">내용</label>
                 <Textarea
-                  placeholder="게시물 내용을 입력하세요"
                   value={content}
                   onChange={(event) => setContent(event.target.value)}
                   className="h-48 w-full text-base"
                 />
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
-              <div className="flex justify-end">
-                <Button
-                  size="lg"
-                  variant="default"
-                  onClick={handleSubmit}
-                  disabled={saving}
-                >
-                  {saving ? "등록 중..." : "작성 완료"}
+              <div className="flex flex-wrap justify-end gap-2">
+                <Button variant="outline" size="lg" asChild>
+                  <Link href={`/board/${boardId}`}>취소</Link>
+                </Button>
+                <Button size="lg" variant="default" onClick={handleSave} disabled={saving}>
+                  {saving ? "저장 중..." : "수정 완료"}
                 </Button>
               </div>
             </CardContent>
