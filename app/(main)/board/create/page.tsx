@@ -33,6 +33,7 @@ export default function BoardCreatePage() {
       setSaving(true);
       setError(null);
       const token = localStorage.getItem("token");
+      // Create API expects contents field.
       const res = await fetch(`${API_URL}/board`, {
         method: "POST",
         headers: {

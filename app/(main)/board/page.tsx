@@ -34,8 +34,10 @@ type BoardItem = {
   status: string;
 };
 
+// Backend expects yyyy-mm-dd in query params.
 const formatDate = (date: Date) => date.toISOString().slice(0, 10);
 
+// Default to current month range for list API.
 const getDefaultDateRange = () => {
   const today = new Date();
   const start = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -46,6 +48,7 @@ const getDefaultDateRange = () => {
   };
 };
 
+// Normalize backend response fields to UI-friendly shape.
 const normalizeBoardItem = (raw: any): BoardItem => {
   const answered = Boolean(raw?.accepted_comment_);
   return {
@@ -89,6 +92,7 @@ export default function BoardPage() {
           headers.Authorization = `Bearer ${token}`;
         }
 
+        // List API: GET /board?page=&size=&start_date=&end_date=
         const res = await fetch(`${API_URL}/board?${params.toString()}`, {
           headers,
           cache: "no-store",

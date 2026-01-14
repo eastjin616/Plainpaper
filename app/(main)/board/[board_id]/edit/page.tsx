@@ -22,6 +22,7 @@ type BoardDetail = {
   content: string;
 };
 
+// Normalize backend detail payload.
 const normalizeBoardDetail = (raw: any): BoardDetail => ({
   title: raw?.title ?? raw?.subject ?? "",
   content: raw?.contents ?? raw?.content ?? raw?.question ?? "",
@@ -44,6 +45,7 @@ export default function BoardEditPage() {
       try {
         setLoading(true);
         const token = localStorage.getItem("token");
+        // Detail API: GET /board/{board_id}
         const res = await fetch(`${API_URL}/board/${boardId}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
           cache: "no-store",
@@ -84,6 +86,7 @@ export default function BoardEditPage() {
       setSaving(true);
       setError(null);
       const token = localStorage.getItem("token");
+      // Update API expects contents field.
       const res = await fetch(`${API_URL}/board/${boardId}`, {
         method: "PUT",
         headers: {
