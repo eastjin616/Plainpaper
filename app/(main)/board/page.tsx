@@ -35,10 +35,10 @@ type BoardItem = {
   isImportant: boolean;
 };
 
-// Backend expects yyyy-mm-dd in query params.
+// 백엔드는 yyyy-mm-dd 형식의 날짜 파라미터를 기대함.
 const formatDate = (date: Date) => date.toISOString().slice(0, 10);
 
-// Default to current month range for list API.
+// 목록 기본 조회는 이번 달 범위로 설정.
 const getDefaultDateRange = () => {
   const today = new Date();
   const start = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -56,7 +56,7 @@ const formatCreatedAt = (value: string) => {
   return parsed.toLocaleString("sv-SE").replace("T", " ");
 };
 
-// Normalize backend response fields to UI-friendly shape.
+// 백엔드 응답 필드를 UI용 데이터로 정규화.
 const normalizeBoardItem = (raw: any): BoardItem => {
   const answered = Boolean(raw?.accepted_comment_);
   return {
@@ -102,7 +102,7 @@ export default function BoardPage() {
           headers.Authorization = `Bearer ${token}`;
         }
 
-        // List API: GET /board?page=&size=&start_date=&end_date=
+        // 목록 API: GET /board?page=&size=&start_date=&end_date=
         const res = await fetch(`${API_URL}/board?${params.toString()}`, {
           headers,
           cache: "no-store",

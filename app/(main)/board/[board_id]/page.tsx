@@ -36,7 +36,7 @@ type BoardDetail = {
   answer: string | null;
 };
 
-// Normalize backend detail payload.
+// 상세 응답 필드를 화면용 데이터로 정규화.
 const normalizeBoardDetail = (raw: any): BoardDetail => ({
   id: raw?.id ?? raw?.board_id ?? "",
   title: raw?.title ?? raw?.subject ?? "",
@@ -64,7 +64,7 @@ export default function BoardDetailPage() {
       try {
         setLoading(true);
         const token = localStorage.getItem("token");
-        // Detail API: GET /board/{board_id}
+        // 상세 API: GET /board/{board_id}
         const res = await fetch(`${API_URL}/board/${boardId}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
           cache: "no-store",
@@ -101,7 +101,7 @@ export default function BoardDetailPage() {
     try {
       setDeleting(true);
       const token = localStorage.getItem("token");
-      // Delete API: DELETE /board/{board_id}
+      // 삭제 API: DELETE /board/{board_id}
       const res = await fetch(`${API_URL}/board/${boardId}`, {
         method: "DELETE",
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,

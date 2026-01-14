@@ -33,7 +33,7 @@ export default function BoardCreatePage() {
       setSaving(true);
       setError(null);
       const token = localStorage.getItem("token");
-      // Create API expects contents field.
+      // 생성 API는 contents 필드를 기대함.
       const res = await fetch(`${API_URL}/board`, {
         method: "POST",
         headers: {

@@ -22,7 +22,7 @@ type BoardDetail = {
   content: string;
 };
 
-// Normalize backend detail payload.
+// 상세 응답 필드를 화면용 데이터로 정규화.
 const normalizeBoardDetail = (raw: any): BoardDetail => ({
   title: raw?.title ?? raw?.subject ?? "",
   content: raw?.contents ?? raw?.content ?? raw?.question ?? "",
@@ -45,7 +45,7 @@ export default function BoardEditPage() {
       try {
         setLoading(true);
         const token = localStorage.getItem("token");
-        // Detail API: GET /board/{board_id}
+        // 상세 API: GET /board/{board_id}
         const res = await fetch(`${API_URL}/board/${boardId}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
           cache: "no-store",
@@ -86,7 +86,7 @@ export default function BoardEditPage() {
       setSaving(true);
       setError(null);
       const token = localStorage.getItem("token");
-      // Update API expects contents field.
+      // 수정 API는 contents 필드를 기대함.
       const res = await fetch(`${API_URL}/board/${boardId}`, {
         method: "PUT",
         headers: {
