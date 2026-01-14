@@ -32,10 +32,13 @@ type BoardItem = {
   createdAt: string;
   views: number;
   status: string;
+  isImportant: boolean;
 };
 
+// 백엔드는 yyyy-mm-dd 형식의 날짜 파라미터를 기대함.
 const formatDate = (date: Date) => date.toISOString().slice(0, 10);
 
+// 목록 기본 조회는 이번 달 범위로 설정.
 const getDefaultDateRange = () => {
   const today = new Date();
   const start = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -46,6 +49,14 @@ const getDefaultDateRange = () => {
   };
 };
 
+const formatCreatedAt = (value: string) => {
+  if (!value) return "";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return parsed.toLocaleString("sv-SE").replace("T", " ");
+};
+
+// 백엔드 응답 필드를 UI용 데이터로 정규화.
 const normalizeBoardItem = (raw: any): BoardItem => {
   const answered = Boolean(raw?.accepted_comment_);
   return {
@@ -55,11 +66,13 @@ const normalizeBoardItem = (raw: any): BoardItem => {
     createdAt: raw?.created_at ?? raw?.createdAt ?? "",
     views: Number(raw?.view_count ?? raw?.views ?? 0),
     status: answered ? "answered" : "waiting",
+    isImportant: Boolean(raw?.is_important),
   };
 };
 
 export default function BoardPage() {
   const [items, setItems] = useState<BoardItem[]>([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -89,6 +102,7 @@ export default function BoardPage() {
           headers.Authorization = `Bearer ${token}`;
         }
 
+        // 목록 API: GET /board?page=&size=&start_date=&end_date=
         const res = await fetch(`${API_URL}/board?${params.toString()}`, {
           headers,
           cache: "no-store",
@@ -114,6 +128,14 @@ export default function BoardPage() {
           : [];
 
         setItems(rawItems.map(normalizeBoardItem));
+        setTotal(
+          Number(
+            json?.total ??
+              json?.data?.total ??
+              json?.meta?.total ??
+              rawItems.length
+          )
+        );
         setError(null);
       } catch (err) {
         console.error("🔥 게시판 목록 불러오기 실패:", err);
@@ -121,6 +143,7 @@ export default function BoardPage() {
           err instanceof Error ? err.message : "게시판 데이터를 불러오지 못했습니다."
         );
         setItems([]);
+        setTotal(0);
       } finally {
         setLoading(false);
       }
@@ -152,6 +175,12 @@ export default function BoardPage() {
 
     return sorted;
   }, [items, query, sortBy, statusFilter]);
+
+  const getDisplayNumber = (index: number) => {
+    const hasFilters = query.trim().length > 0 || statusFilter !== "all";
+    const baseTotal = hasFilters ? filteredItems.length : total || items.length;
+    return baseTotal - (page - 1) * size - index;
+  };
 
   return (
     <ProtectedPage>
@@ -197,7 +226,7 @@ export default function BoardPage() {
                 <div className="flex items-center justify-between">
                   <span>전체 게시글</span>
                   <span className="text-lg font-semibold text-foreground">
-                    {items.length}건
+                    {total || items.length}건
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
@@ -296,12 +325,34 @@ export default function BoardPage() {
                   )}
                   {!loading &&
                     !error &&
-                    filteredItems.map((item) => (
+                    filteredItems.map((item, index) => (
                     <div
                       key={item.id}
                       className="flex flex-col gap-3 px-6 py-4 transition hover:bg-muted/40 md:grid md:grid-cols-[90px_minmax(0,1fr)_140px_180px_90px] md:items-center"
                     >
-                      <div className="text-base font-medium text-foreground">{item.id}</div>
+                      <div className="text-base font-medium text-foreground">
+                        {item.isImportant ? (
+                          <span className="inline-flex items-center justify-center">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth="1.5"
+                              stroke="currentColor"
+                              className="h-4 w-4"
+                              aria-hidden="true"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5"
+                              />
+                            </svg>
+                          </span>
+                        ) : (
+                          getDisplayNumber(index)
+                        )}
+                      </div>
                       <div className="flex flex-col gap-2">
                         <span
                           className={`w-fit rounded-full px-2.5 py-1 text-sm font-medium ${
@@ -322,7 +373,7 @@ export default function BoardPage() {
                         {item.author}
                       </div>
                       <div className="text-base text-muted-foreground md:text-center">
-                        {item.createdAt}
+                        {formatCreatedAt(item.createdAt)}
                       </div>
                       <div className="text-base text-muted-foreground md:text-center">
                         {item.views}
