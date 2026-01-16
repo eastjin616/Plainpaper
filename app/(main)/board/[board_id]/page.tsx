@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ProtectedPage from "@/app/_contexts/ProtectedPage";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
@@ -36,6 +37,13 @@ type BoardDetail = {
   answer: string | null;
 };
 
+type BoardComment = {
+  id: string;
+  contents: string | null;
+  createdAt: string;
+  createdBy: string | null;
+};
+
 // 상세 응답 필드를 화면용 데이터로 정규화.
 const normalizeBoardDetail = (raw: any): BoardDetail => ({
   id: raw?.id ?? raw?.board_id ?? "",
@@ -48,6 +56,20 @@ const normalizeBoardDetail = (raw: any): BoardDetail => ({
   answer: raw?.answer ?? raw?.response ?? null,
 });
 
+const normalizeBoardComment = (raw: any): BoardComment => ({
+  id: raw?.id ?? "",
+  contents: raw?.contents ?? "",
+  createdAt: raw?.created_at ?? raw?.createdAt ?? "",
+  createdBy: raw?.created_by ?? raw?.createdBy ?? null,
+});
+
+const formatDateTime = (value?: string) => {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString();
+};
+
 export default function BoardDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -57,6 +79,11 @@ export default function BoardDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [comments, setComments] = useState<BoardComment[]>([]);
+  const [commentInput, setCommentInput] = useState("");
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentSubmitting, setCommentSubmitting] = useState(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadDetail() {
@@ -94,6 +121,42 @@ export default function BoardDetailPage() {
     loadDetail();
   }, [boardId]);
 
+  const loadComments = async () => {
+    if (!boardId) return;
+    try {
+      setCommentsLoading(true);
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_URL}/board/${boardId}/comments`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        cache: "no-store",
+      });
+
+      if (!res.ok) {
+        const errorPayload = await res.json().catch(() => null);
+        const message =
+          errorPayload?.detail ?? "답변 정보를 불러오지 못했습니다.";
+        throw new Error(message);
+      }
+
+      const json = await res.json();
+      const items = Array.isArray(json?.items) ? json.items : [];
+      setComments(items.map(normalizeBoardComment));
+      setCommentError(null);
+    } catch (err) {
+      console.error("🔥 답변 불러오기 실패:", err);
+      setCommentError(
+        err instanceof Error ? err.message : "답변 정보를 불러오지 못했습니다."
+      );
+      setComments([]);
+    } finally {
+      setCommentsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadComments();
+  }, [boardId]);
+
   const handleDelete = async () => {
     if (!boardId || deleting) return;
     if (!confirm("게시물을 삭제할까요?")) return;
@@ -117,6 +180,73 @@ export default function BoardDetailPage() {
       alert("게시물 삭제에 실패했습니다.");
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleCommentSubmit = async () => {
+    if (!boardId || commentSubmitting) return;
+    const trimmed = commentInput.trim();
+    if (!trimmed) {
+      alert("답변 내용을 입력해주세요.");
+      return;
+    }
+
+    try {
+      setCommentSubmitting(true);
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_URL}/board/${boardId}/comments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ contents: trimmed }),
+      });
+
+      if (!res.ok) {
+        const errorPayload = await res.json().catch(() => null);
+        const message = errorPayload?.detail ?? "답변 등록에 실패했습니다.";
+        throw new Error(message);
+      }
+
+      setCommentInput("");
+      await loadComments();
+    } catch (err) {
+      console.error("🔥 답변 등록 실패:", err);
+      alert(
+        err instanceof Error ? err.message : "답변 등록에 실패했습니다."
+      );
+    } finally {
+      setCommentSubmitting(false);
+    }
+  };
+
+  const handleCommentDelete = async (commentId: string) => {
+    if (!boardId || !commentId) return;
+    if (!confirm("답변을 삭제할까요?")) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `${API_URL}/board/${boardId}/comments/${commentId}`,
+        {
+          method: "DELETE",
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        }
+      );
+
+      if (!res.ok) {
+        const errorPayload = await res.json().catch(() => null);
+        const message = errorPayload?.detail ?? "답변 삭제에 실패했습니다.";
+        throw new Error(message);
+      }
+
+      await loadComments();
+    } catch (err) {
+      console.error("🔥 답변 삭제 실패:", err);
+      alert(
+        err instanceof Error ? err.message : "답변 삭제에 실패했습니다."
+      );
     }
   };
 
@@ -182,11 +312,14 @@ export default function BoardDetailPage() {
                   <CardTitle className="text-2xl">{detail.title}</CardTitle>
                   <span
                     className={`w-fit rounded-full px-3 py-1 text-sm font-medium ${
-                      statusStyles[detail.status] ??
+                      statusStyles[
+                        comments.length > 0 ? "answered" : detail.status
+                      ] ??
                       "border border-muted-foreground/30 bg-muted/40 text-muted-foreground"
                     }`}
                   >
-                    {statusLabels[detail.status] ?? detail.status}
+                    {statusLabels[comments.length > 0 ? "answered" : detail.status] ??
+                      detail.status}
                   </span>
                 </div>
                 <CardDescription className="text-base">
@@ -197,10 +330,78 @@ export default function BoardDetailPage() {
                 <div className="rounded-lg border border-border/60 bg-muted/40 p-4 text-foreground">
                   {detail.content || "질문 내용이 없습니다."}
                 </div>
-                <div className="space-y-2">
-                  <p className="text-lg font-semibold text-foreground">답변</p>
-                  <div className="rounded-lg border border-border/60 bg-background p-4 text-muted-foreground">
-                    {detail.answer || "아직 등록된 답변이 없습니다."}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-lg font-semibold text-foreground">답변</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={loadComments}
+                      disabled={commentsLoading}
+                    >
+                      {commentsLoading ? "불러오는 중..." : "새로고침"}
+                    </Button>
+                  </div>
+                  {commentError && (
+                    <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                      {commentError}
+                    </div>
+                  )}
+                  <div className="space-y-3">
+                    {commentsLoading && (
+                      <div className="rounded-lg border border-border/60 bg-background p-4 text-muted-foreground">
+                        답변을 불러오는 중입니다.
+                      </div>
+                    )}
+                    {!commentsLoading && comments.length === 0 && (
+                      <div className="rounded-lg border border-border/60 bg-background p-4 text-muted-foreground">
+                        아직 등록된 답변이 없습니다.
+                      </div>
+                    )}
+                    {!commentsLoading &&
+                      comments.map((comment) => (
+                        <div
+                          key={comment.id}
+                          className="rounded-lg border border-border/60 bg-background p-4"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+                            <span>
+                              {comment.createdBy
+                                ? `작성자 ${comment.createdBy}`
+                                : "작성자 정보 없음"}
+                            </span>
+                            <span>{formatDateTime(comment.createdAt)}</span>
+                          </div>
+                          <p className="mt-2 whitespace-pre-line text-sm text-foreground">
+                            {comment.contents || "내용 없음"}
+                          </p>
+                          <div className="mt-3 flex justify-end">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleCommentDelete(comment.id)}
+                            >
+                              삭제
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                  <div className="space-y-3 rounded-lg border border-border/60 bg-background p-4">
+                    <Textarea
+                      placeholder="답변을 입력하세요."
+                      value={commentInput}
+                      onChange={(e) => setCommentInput(e.target.value)}
+                      className="min-h-[100px] resize-none"
+                    />
+                    <div className="flex justify-end">
+                      <Button
+                        onClick={handleCommentSubmit}
+                        disabled={commentSubmitting}
+                      >
+                        {commentSubmitting ? "등록 중..." : "답변 등록"}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardContent>

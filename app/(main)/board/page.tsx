@@ -33,6 +33,7 @@ type BoardItem = {
   views: number;
   status: string;
   isImportant: boolean;
+  commentCount?: number;
 };
 
 // 백엔드는 yyyy-mm-dd 형식의 날짜 파라미터를 기대함.
@@ -58,7 +59,16 @@ const formatCreatedAt = (value: string) => {
 
 // 백엔드 응답 필드를 UI용 데이터로 정규화.
 const normalizeBoardItem = (raw: any): BoardItem => {
-  const answered = Boolean(raw?.accepted_comment_);
+  const commentCountValue =
+    raw?.comment_count ??
+    raw?.comments_count ??
+    raw?.commentsCount ??
+    (Array.isArray(raw?.comments) ? raw.comments.length : undefined);
+  const commentCount = Number.isFinite(Number(commentCountValue))
+    ? Number(commentCountValue)
+    : undefined;
+  const hasComments = typeof commentCount === "number" ? commentCount > 0 : false;
+  const answered = hasComments || Boolean(raw?.accepted_comment_);
   return {
     id: raw?.id ?? raw?.board_id ?? "",
     title: raw?.title ?? raw?.subject ?? "",
@@ -67,6 +77,7 @@ const normalizeBoardItem = (raw: any): BoardItem => {
     views: Number(raw?.view_count ?? raw?.views ?? 0),
     status: answered ? "answered" : "waiting",
     isImportant: Boolean(raw?.is_important),
+    commentCount,
   };
 };
 
@@ -127,7 +138,8 @@ export default function BoardPage() {
           ? json.data
           : [];
 
-        setItems(rawItems.map(normalizeBoardItem));
+        const normalizedItems = rawItems.map(normalizeBoardItem);
+        setItems(normalizedItems);
         setTotal(
           Number(
             json?.total ??
@@ -137,6 +149,57 @@ export default function BoardPage() {
           )
         );
         setError(null);
+
+        const pendingItems = normalizedItems.filter(
+          (item: BoardItem) =>
+            item.status === "waiting" && item.commentCount == null
+        );
+
+        if (pendingItems.length > 0) {
+          const commentHeaders: HeadersInit = {};
+          const token = localStorage.getItem("token");
+          if (token) {
+            commentHeaders.Authorization = `Bearer ${token}`;
+          }
+
+          const results = await Promise.all(
+            pendingItems.map(async (item: BoardItem) => {
+              try {
+                const res = await fetch(
+                  `${API_URL}/board/${item.id}/comments?page=1&size=1`,
+                  {
+                    headers: commentHeaders,
+                    cache: "no-store",
+                  }
+                );
+
+                if (!res.ok) return item;
+
+                const data = await res.json();
+                const totalCount = Number(
+                  data?.total ??
+                    data?.data?.total ??
+                    (Array.isArray(data?.items) ? data.items.length : 0)
+                );
+                if (!Number.isFinite(totalCount)) return item;
+
+                return totalCount > 0
+                  ? { ...item, status: "answered", commentCount: totalCount }
+                  : item;
+              } catch (err) {
+                console.error("🔥 답변 상태 조회 실패:", err);
+                return item;
+              }
+            })
+          );
+
+          const updatedMap = new Map(
+            results.map((updated) => [updated.id, updated])
+          );
+          setItems((prev) =>
+            prev.map((item) => updatedMap.get(item.id) ?? item)
+          );
+        }
       } catch (err) {
         console.error("🔥 게시판 목록 불러오기 실패:", err);
         setError(
