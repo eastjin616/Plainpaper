@@ -1,17 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import ProtectedPage from "@/app/_contexts/ProtectedPage";
 
-const tabs = [
-  { href: "/analytics", label: "Overview" },
-  { href: "/analytics/documents", label: "Documents" },
-  { href: "/analytics/ai-usage", label: "AI Usage" },
-];
-
 export default function AnalyticsLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+  const isLocked = true;
 
   return (
     <ProtectedPage>
@@ -41,27 +33,25 @@ export default function AnalyticsLayout({ children }: { children: React.ReactNod
               </div>
             </div>
 
-            <nav className="flex flex-wrap gap-2">
-              {tabs.map((tab) => {
-                const isActive = pathname === tab.href;
-                return (
-                  <Link
-                    key={tab.href}
-                    href={tab.href}
-                    className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
-                      isActive
-                        ? "border-transparent bg-primary text-primary-foreground shadow"
-                        : "border-border bg-card text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {tab.label}
-                  </Link>
-                );
-              })}
-            </nav>
           </div>
 
-          <div className="flex flex-col gap-6">{children}</div>
+          <div className="flex flex-col gap-6">
+            {isLocked ? (
+              <div className="rounded-2xl border border-border/70 bg-card/80 p-10 text-center shadow-lg backdrop-blur">
+                <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">
+                  Coming Soon
+                </p>
+                <h2 className="mt-3 text-2xl font-semibold text-foreground">
+                  Analytics는 준비 중입니다.
+                </h2>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  현재는 하드코딩 데이터로 구성되어 있어 잠시 비활성화했습니다.
+                </p>
+              </div>
+            ) : (
+              children
+            )}
+          </div>
         </div>
       </div>
     </ProtectedPage>
