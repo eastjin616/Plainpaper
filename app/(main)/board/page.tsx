@@ -151,7 +151,8 @@ export default function BoardPage() {
         setError(null);
 
         const pendingItems = normalizedItems.filter(
-          (item) => item.status === "waiting" && item.commentCount == null
+          (item: BoardItem) =>
+            item.status === "waiting" && item.commentCount == null
         );
 
         if (pendingItems.length > 0) {
