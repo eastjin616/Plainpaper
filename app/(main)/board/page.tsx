@@ -227,7 +227,14 @@ export default function BoardPage() {
       return matchesQuery && matchesStatus;
     });
 
-    const sorted = [...filtered].sort((a, b) => {
+    const important = filtered
+      .filter((item) => item.isImportant)
+      .sort((a, b) => {
+        const aTime = Date.parse(a.createdAt) || 0;
+        const bTime = Date.parse(b.createdAt) || 0;
+        return bTime - aTime;
+      });
+    const normal = filtered.filter((item) => !item.isImportant).sort((a, b) => {
       if (sortBy === "views") {
         return b.views - a.views;
       }
@@ -236,7 +243,7 @@ export default function BoardPage() {
       return bTime - aTime;
     });
 
-    return sorted;
+    return [...important, ...normal];
   }, [items, query, sortBy, statusFilter]);
 
   const getDisplayNumber = (index: number) => {
@@ -417,14 +424,21 @@ export default function BoardPage() {
                         )}
                       </div>
                       <div className="flex flex-col gap-2">
-                        <span
-                          className={`w-fit rounded-full px-2.5 py-1 text-sm font-medium ${
-                            statusStyles[item.status] ??
-                            "border border-muted-foreground/30 bg-muted/40 text-muted-foreground"
-                          }`}
-                        >
-                          {statusLabels[item.status] ?? item.status}
-                        </span>
+                        <div className="flex flex-wrap items-center gap-2">
+                          {item.isImportant && (
+                            <span className="w-fit rounded-full border border-sky-200 bg-sky-100/80 px-2.5 py-1 text-sm font-semibold text-sky-800">
+                              FAQ
+                            </span>
+                          )}
+                          <span
+                            className={`w-fit rounded-full px-2.5 py-1 text-sm font-medium ${
+                              statusStyles[item.status] ??
+                              "border border-muted-foreground/30 bg-muted/40 text-muted-foreground"
+                            }`}
+                          >
+                            {statusLabels[item.status] ?? item.status}
+                          </span>
+                        </div>
                         <Link
                           href={`/board/${item.id}`}
                           className="text-base font-semibold text-foreground hover:underline"

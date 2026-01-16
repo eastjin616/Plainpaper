@@ -20,12 +20,14 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 type BoardDetail = {
   title: string;
   content: string;
+  isImportant: boolean;
 };
 
 // 상세 응답 필드를 화면용 데이터로 정규화.
 const normalizeBoardDetail = (raw: any): BoardDetail => ({
   title: raw?.title ?? raw?.subject ?? "",
   content: raw?.contents ?? raw?.content ?? raw?.question ?? "",
+  isImportant: Boolean(raw?.is_important),
 });
 
 export default function BoardEditPage() {
@@ -35,6 +37,7 @@ export default function BoardEditPage() {
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [isImportant, setIsImportant] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,6 +65,7 @@ export default function BoardEditPage() {
         const normalized = normalizeBoardDetail(rawDetail);
         setTitle(normalized.title);
         setContent(normalized.content);
+        setIsImportant(normalized.isImportant);
         setError(null);
       } catch (err) {
         console.error("🔥 게시물 불러오기 실패:", err);
@@ -93,7 +97,11 @@ export default function BoardEditPage() {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ title, contents: content }),
+        body: JSON.stringify({
+          title,
+          contents: content,
+          is_important: isImportant,
+        }),
       });
 
       if (!res.ok) {
@@ -162,6 +170,21 @@ export default function BoardEditPage() {
                   onChange={(event) => setContent(event.target.value)}
                   className="h-48 w-full text-base"
                 />
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/60 bg-muted/30 px-4 py-3">
+                <div>
+                  <p className="text-base font-medium">FAQ 상단 고정</p>
+                  <p className="text-sm text-muted-foreground">
+                    켜면 FAQ로 표시되고 목록 상단에 고정됩니다.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant={isImportant ? "default" : "outline"}
+                  onClick={() => setIsImportant((prev) => !prev)}
+                >
+                  {isImportant ? "FAQ On" : "FAQ Off"}
+                </Button>
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
               <div className="flex flex-wrap justify-end gap-2">
