@@ -77,8 +77,9 @@ const apps: AppItem[] = [
     id: "wiki",
     name: "Knowledge Wiki",
     description: "팀 지식을 구조화하고 검색 가능한 위키로.",
-    status: "soon",
-    cta: "Coming Soon",
+    status: "live",
+    cta: "열기",
+    href: "/wiki",
     iconName: "layers",
   },
   {
