@@ -163,7 +163,7 @@ export default function BoardPage() {
           }
 
           const results = await Promise.all(
-            pendingItems.map(async (item) => {
+            pendingItems.map(async (item: BoardItem) => {
               try {
                 const res = await fetch(
                   `${API_URL}/board/${item.id}/comments?page=1&size=1`,
