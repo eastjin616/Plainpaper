@@ -31,7 +31,7 @@ export default function Header() {
         {/* 로고 */}
         <h1
           className="text-lg font-bold text-foreground cursor-pointer sm:text-xl"
-          onClick={() => router.push("/")}
+          onClick={() => router.push("/dashboard")}
         >
           CareerPilot ✨
         </h1>

@@ -153,7 +153,7 @@ export default function ApplicationsPage() {
           <div className="flex items-center justify-between mb-2">
             <button
               className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-              onClick={() => router.push("/")}
+              onClick={() => router.push("/dashboard")}
             >
               <ArrowLeft className="w-4 h-4" />
               대시보드

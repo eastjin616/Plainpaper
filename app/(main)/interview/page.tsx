@@ -106,7 +106,7 @@ export default function InterviewPage() {
         <div className="max-w-4xl mx-auto">
           <button
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8"
-            onClick={() => router.push("/")}
+            onClick={() => router.push("/dashboard")}
           >
             <ArrowLeft className="w-4 h-4" />
             대시보드

@@ -79,7 +79,7 @@ export default function EssayPage() {
           <div className="flex items-center justify-between mb-8">
             <button
               className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-              onClick={() => router.push("/")}
+              onClick={() => router.push("/dashboard")}
             >
               <ArrowLeft className="w-4 h-4" />
               대시보드
