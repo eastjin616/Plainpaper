@@ -53,7 +53,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-[420px] mx-4 p-6 sm:p-8 shadow-xl border border-border bg-card/80 backdrop-blur-xl">
         <CardContent>
           <h1 className="text-3xl font-bold text-center mb-6 text-foreground">
-            Plainpaper
+            CareerPilot
           </h1>
 
           <form onSubmit={handleLogin} className="space-y-4">

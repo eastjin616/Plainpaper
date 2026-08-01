@@ -33,7 +33,7 @@ export default function Header() {
           className="text-lg font-bold text-foreground cursor-pointer sm:text-xl"
           onClick={() => router.push("/")}
         >
-          Plainpaper ✨
+          CareerPilot ✨
         </h1>
 
         {/* 데스크톱 메뉴 */}

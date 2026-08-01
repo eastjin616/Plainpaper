@@ -31,7 +31,7 @@ const workspaces: WorkspaceItem[] = [
   },
   {
     id: "org",
-    name: "Plainpaper Labs",
+    name: "CareerPilot Labs",
     type: "조직",
     members: "24",
     documents: 148,

@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import AuthClientWrapper from "./_contexts/AuthClientWrapper";
 
 export const metadata: Metadata = {
-  title: "Plainpaper",
-  description: "복잡한 문서를 AI가 쉽게 해석해주는 서비스",
+  title: "CareerPilot",
+  description: "오픈소스 AI 취업 코파일럿 — 이력서 분석, 자소서 첨삭, 모의면접을 한 곳에서",
 };
 
 import { Providers } from "./providers";

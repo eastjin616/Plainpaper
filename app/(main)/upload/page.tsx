@@ -68,7 +68,7 @@ export default function UploadPage() {
         <div className="mb-6 text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-card border border-border shadow-sm text-xs text-muted-foreground mb-3">
             <Sparkles className="w-3 h-3 text-primary" />
-            <span>Plainpaper · 약관 / 계약서 요약 AI</span>
+            <span>CareerPilot · AI 취업 코파일럿</span>
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
             복잡한 문서, <span className="text-primary">한 번에 이해</span>

@@ -87,7 +87,7 @@ export default function SignupPage() {
     <main className="flex items-center justify-center min-h-screen bg-background">
       <Card className="w-full max-w-[420px] mx-4 p-6 sm:p-8 shadow-xl border border-border bg-card/80 backdrop-blur-xl">
         <CardContent>
-          <h1 className="text-3xl font-bold text-center mb-6 text-foreground">Plainpaper</h1>
+          <h1 className="text-3xl font-bold text-center mb-6 text-foreground">CareerPilot</h1>
 
           <form onSubmit={handleSignup} className="space-y-4">
             <div>

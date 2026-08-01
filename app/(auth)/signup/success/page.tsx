@@ -30,7 +30,7 @@ export default function SignupSuccessPage() {
         <CardContent>
           <h1 className="text-3xl font-bold text-foreground mb-2">🎉 가입 완료!</h1>
           <p className="text-muted-foreground mb-1">회원가입이 성공적으로 완료되었습니다.</p>
-          <p className="text-muted-foreground mb-6">지금 바로 Plainpaper를 시작해보세요!</p>
+          <p className="text-muted-foreground mb-6">지금 바로 CareerPilot를 시작해보세요!</p>
 
           <Button
             onClick={() => router.push("/login")}

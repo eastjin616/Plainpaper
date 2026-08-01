@@ -138,7 +138,7 @@ export default function BoardPage() {
           ? json.data
           : [];
 
-        const normalizedItems = rawItems.map(normalizeBoardItem);
+        const normalizedItems: BoardItem[] = rawItems.map(normalizeBoardItem);
         setItems(normalizedItems);
         setTotal(
           Number(

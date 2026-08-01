@@ -7,7 +7,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
       <Header />
       <main className="flex-1 flex flex-col">{children}</main>
       <footer className="py-6 text-center text-muted-foreground text-sm border-t border-border">
-        © 2025 Plainpaper. All rights reserved.
+        © 2026 CareerPilot. Open source · MIT License
       </footer>
     </div>
   );

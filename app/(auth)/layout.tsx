@@ -5,7 +5,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
     <div className="bg-background min-h-screen flex flex-col justify-center">
       {children}
       <footer className="mt-10 py-6 text-center text-muted-foreground text-sm">
-        © 2025 Plainpaper. All rights reserved.
+        © 2026 CareerPilot. Open source · MIT License
       </footer>
     </div>
   );
