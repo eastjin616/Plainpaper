@@ -15,19 +15,19 @@ import { useAuth } from "@/app/_contexts/AuthContext";
 const workspaces: WorkspaceItem[] = [
   {
     id: "personal",
-    name: "Personal Workspace",
+    name: "My Job Search",
     type: "개인",
     members: "1",
     documents: 12,
-    summary: "최근 7일 동안 4건의 문서가 요약되었습니다.",
+    summary: "최근 7일 동안 4건의 이력서가 분석되었습니다.",
   },
   {
     id: "team",
-    name: "Design Team",
-    type: "팀",
-    members: "6",
-    documents: 34,
-    summary: "문서 리뷰 흐름이 활성화되었습니다.",
+    name: "Interview Prep",
+    type: "스터디",
+    members: "3",
+    documents: 8,
+    summary: "모의면접 세션이 활성화되었습니다.",
   },
   {
     id: "org",
@@ -35,29 +35,29 @@ const workspaces: WorkspaceItem[] = [
     type: "조직",
     members: "24",
     documents: 148,
-    summary: "이번 주 문서 분석 22건 진행 중.",
+    summary: "이번 주 이력서 분석 22건 진행 중.",
   },
 ];
 
 const activities: ActivityItem[] = [
   {
     id: "act-1",
-    title: "보험 약관 요약",
-    app: "AI Document Reader",
+    title: "백엔드 이력서 ATS 분석",
+    app: "ATS Analyzer",
     status: "완료",
     time: "방금 전",
   },
   {
     id: "act-2",
-    title: "서비스 이용약관 하이라이트",
-    app: "AI Document Reader",
+    title: "지원동기 자소서 첨삭",
+    app: "Essay Studio",
     status: "진행 중",
     time: "15분 전",
   },
   {
     id: "act-3",
-    title: "대출 계약서 Q&A",
-    app: "AI Document Reader",
+    title: "모의면접 세션",
+    app: "AI Interview",
     status: "완료",
     time: "어제",
   },
@@ -65,38 +65,39 @@ const activities: ActivityItem[] = [
 
 const apps: AppItem[] = [
   {
-    id: "reader",
-    name: "AI Document Reader",
-    description: "문서를 업로드하고 요약, 하이라이트, Q&A까지.",
+    id: "ats",
+    name: "ATS Analyzer",
+    description: "이력서를 업로드하고 ATS 점수·개선 포인트를 확인하세요.",
     status: "live",
-    cta: "열기",
+    cta: "분석하기",
     href: "/upload",
     iconName: "file-text",
   },
   {
-    id: "wiki",
-    name: "Knowledge Wiki",
-    description: "팀 지식을 구조화하고 검색 가능한 위키로.",
-    status: "soon",
-    cta: "Coming Soon",
+    id: "essay",
+    name: "Essay Studio",
+    description: "AI가 자소서를 첨삭해주는 스튜디오.",
+    status: "live",
+    cta: "첨삭하기",
+    href: "/essay",
     iconName: "layers",
   },
   {
-    id: "qa",
-    name: "Q&A Board",
-    description: "문서 기반 질의응답과 토론이 모이는 공간.",
+    id: "interview",
+    name: "AI Interview",
+    description: "이력서 기반 질문 생성과 STAR 피드백 모의면접.",
     status: "live",
-    cta: "열기",
-    href: "/board",
+    cta: "연습하기",
+    href: "/interview",
     iconName: "message-circle-question",
   },
   {
-    id: "analytics",
-    name: "Analytics",
-    description: "워크스페이스 전반의 문서 흐름을 한눈에.",
+    id: "applications",
+    name: "Application Tracker",
+    description: "지원 현황을 한눈에 관리하는 트래커.",
     status: "live",
-    cta: "열기",
-    href: "/analytics",
+    cta: "관리하기",
+    href: "/applications",
     iconName: "line-chart",
   },
 ];
@@ -131,15 +132,15 @@ export default function Dashboard() {
         <section className="flex flex-col gap-6">
           <div className="inline-flex w-fit items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1 text-xs text-muted-foreground shadow-sm">
             <Sparkles className="h-3 w-3 text-primary" />
-            Workspace 중심 AI 그룹웨어
+            Open Source · AI 취업 코파일럿
           </div>
           <div className="flex flex-col gap-3">
             <h1 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
               대시보드
             </h1>
             <p className="max-w-2xl text-sm text-muted-foreground md:text-base">
-              문서는 Workspace에 귀속되고, 모든 앱은 워크플로우 중심으로 연결됩니다.
-              지금은 대표 App인 Document Reader를 중심으로 경험을 확장합니다.
+              이력서 분석, 자소서 첨삭, 모의면접, 지원 관리를 한 곳에서.
+              CareerPilot은 당신의 취업 여정을 함께합니다.
             </p>
           </div>
           <div className="flex w-fit items-center gap-2 rounded-full border border-border bg-background/80 p-1 text-xs">
