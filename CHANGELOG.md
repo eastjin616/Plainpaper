@@ -1,3 +1,29 @@
+## [CareerPilot v0.2] — 2026-08-02
+
+### Added
+
+- 🔄 **전면 리브랜딩**: Plainpaper (보험·계약서 AI) → CareerPilot (오픈소스 AI 취업 코파일럿)
+  → app/layout.tsx, app/(main)/layout.tsx, app/(auth)/layout.tsx, components/layout/Header.tsx, package.json
+- 📄 **ATS Analyzer**: 이력서 업로드 → ATS 점수 + 5개 카테고리 평가 + 개선 포인트 + 스킬 추출
+  → app/(main)/analysis/[id]/page.tsx (결과 뷰), app/(main)/upload/page.tsx
+- ✍️ **Essay Studio**: 자소서 AI 첨삭 스튜디오 (before/after + 피드백 + 복사)
+  → app/(main)/essay/page.tsx
+- 🎤 **AI Interview**: 이력서 기반 질문 생성 + STAR 답변 평가
+  → app/(main)/interview/page.tsx
+- 📊 **Application Tracker**: 지원 현황 CRUD + 상태별 통계
+  → app/(main)/applications/page.tsx
+- 🏠 **공개 랜딩 페이지** + 대시보드 /dashboard 이동
+  → app/page.tsx, app/(main)/dashboard/page.tsx
+- 📘 **오픈소스 README + MIT LICENSE + 셀프호스트 docker-compose**
+  → README.md, LICENSE, docker-compose.yml
+
+### Changed
+
+- 대시보드 → CareerPilot 기능 허브 (ATS/첨삭/면접/트래커 4앱)
+  → components/dashboard/Dashboard.tsx
+- board 목록 타입 에러 수정 (BoardItem[] 명시)
+  → app/(main)/board/page.tsx
+
 ## [HEAD] — 2026-06-20
 
 ### Added
