@@ -1,124 +1,124 @@
-# 📄 Plainpaper – 보험·계약서류 AI 분석 서비스
+<div align="center">
 
-**Plainpaper**는 보험 약관, 금융 문서, 계약서처럼 길고 복잡한 문서를  
-**업로드 → AI 자동 분석 → 핵심 요약 · 중요 문장 탐지 · 구조 분석(TOC)**  
-까지 자동으로 처리해주는 웹 서비스입니다.
+# CareerPilot ✈️
 
-사용자는 복잡한 서류를 빠르게 이해할 수 있고, 핵심 정보만 모아보고 싶은 실사용자 경험을 목표로 하고 있습니다.
+**오픈소스 AI 취업 코파일럿** — 이력서 ATS 분석 · 자소서 첨삭 · 모의면접 · 지원 트래커
 
----
+![License](https://img.shields.io/badge/License-MIT-green.svg)
+![Next.js](https://img.shields.io/badge/Next.js-16-black.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-Python-009688.svg)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791.svg)
 
-## 🎥 Demo Video
+이력서를 업로드하면 AI가 **자동 서류심사(ATS) 기준으로 점수를 매기고**, 개선 포인트를 알려줍니다.
+자소서는 AI가 첨삭하고, 이력서를 읽은 면접관이 **모의면접**을 진행합니다. 지원 현황은 트래커로 관리하세요.
 
-### ▸ 메인 기능 (PDF 분석 흐름)
+**자기 이력서·자소서는 가장 민감한 개인정보입니다. CareerPilot은 완전한 셀프호스트를 지원합니다.**
 
-https://github.com/user-attachments/assets/9778dc1e-55f7-4709-bc38-0a9221cb2881
+</div>
 
----
+## ✨ 핵심 기능
 
-### ▸ AI 채팅 기능
+| 기능 | 설명 |
+|---|---|
+| 📄 **ATS Analyzer** | 이력서 업로드 → ATS 점수(0~100) + 5개 카테고리 평가(연락처·섹션·성과·스킬·가독성) + 개선 포인트 + 핵심 스킬 추출 |
+| ✍️ **Essay Studio** | 자소서 AI 첨삭 — 흔한 문장 → 경험 기반 문장, before/after 비교 + 피드백 |
+| 🎤 **AI Interview** | 이력서 기반 질문 5개 생성 → STAR 기법(상황-과제-행동-결과) 답변 평가 |
+| 📊 **Application Tracker** | 지원 현황 CRUD — 지원완료/서류통과/면접/합격/불합격 + 상태별 통계 |
 
-https://github.com/user-attachments/assets/212322ce-aa8d-4292-8ed6-caac534350f8
+## 🧠 도메인 지식 (AI만이 아니라 "규칙"이 안다)
 
+CareerPilot의 ATS 점수는 LLM이 "잘해줄게" 하고 내는 숫자가 아닙니다.
+실제 ATS 시스템이 파싱하는 **하드 규칙**을 반영한 휴리스틱 엔진입니다 (`services/ats.py`):
 
----
+- **연락처 인식**: 이메일/전화번호 정규식 파싱 (ATS는 문단 중간에 숨은 연락처를 못 찾습니다)
+- **섹션 헤딩**: `경력/프로젝트/학력/스킬` 표준 섹션이 없으면 파싱 실패
+- **성과 신호**: 결과 동사(개선·향상·달성) + 수치(%, k, 만) — 추상 문장은 점수 감점
+- **스킬 밀도**: JD 키워드 매칭 가능한 기술 스택 명시 여부
+- **가독성**: ATS는 200자 미만·4000자 초과 문서를 파싱 실패 처리
 
-# 🏗️ Architecture
-Next.js (Vercel)
--> (REST)
-FastAPI (Cloudtype Docker)
-->
-PostgreSQL (Cloudtype Docker)
+LLM(OpenAI/Ollama)은 첨삭·모의면접처럼 **판단이 필요한 부분**에만 사용하고,
+점수 산출은 로컬에서 즉시·무비용·무네트워크로 동작합니다.
 
----
-### 개발 환경
-- 로컬에서는 **Docker + docker-compose** 로  
-  Postgres + pgAdmin 환경 실행  
-- 프론트는 로컬 Next.js dev 서버로 개발  
-- 백엔드는 FastAPI + Uvicorn
+## 🖥️ 라이브 데모
 
----
+**https://plainpaper1.vercel.app** — 코드를 내려받기 전에 먼저 사용해보세요.
 
-# 🌐 Deployment
+## 🚀 빠른 시작 (셀프호스트)
+```bash
+# 1. 저장소 클론
+git clone https://github.com/eastjin616/Plainpaper.git
+cd Plainpaper
 
-### 🟦 Frontend (Next.js)
-- **Vercel** 배포  
-- 자동 빌드 및 CI 지원  
-- 환경 변수 기반으로 백엔드 URL 연동  
+# 2. 환경변수 설정
+cp plainpaper_back/.env.example plainpaper_back/.env
+#   → OPENAI_API_KEY 입력 (LLM 첨삭/면접용, 없어도 ATS 분석·트래커는 동작)
 
-### 🟧 Backend (FastAPI)
-- **Cloudtype Docker 이미지 기반 배포**
-- Uvicorn 서버로 실행  
-- OpenAI Key, DB URL, JWT Secret 등 환경 변수 적용
+# 3. Docker Compose로 3계층 실행
+docker compose up --build
+```
 
-### 🟨 Database (PostgreSQL)
-- **Cloudtype Docker PostgreSQL**
-- 백엔드와 동일 프로젝트 내 서비스로 구성  
-- 로컬 개발 시 docker-compose로 별도 실행
+| 서비스 | 주소 |
+|---|---|
+| 🌐 프론트 (Next.js) | http://localhost:3001 |
+| 🔧 백엔드 API (FastAPI) | http://localhost:8000 |
+| 🗄️ 데이터베이스 (PostgreSQL 15) | localhost:5432 |
 
----
+> **LLM 없이 사용하기**: `plainpaper_back/.env`에서 `USE_OLLAMA=true`로 설정하면 로컬 Ollama로 동작합니다.
+> ATS 분석과 지원 트래커는 LLM 자체가 필요 없어 오프라인에서도 완전히 사용할 수 있습니다.
 
-# 🐳 Local Development (Docker)
+## 🛠 기술 스택
 
-로컬에서 FastAPI + DB 테스트를 위해 Docker 설정을 사용합니다.
+- **Frontend**: Next.js 16 · React 19 · TypeScript · Tailwind CSS 4 · Shadcn UI
+- **Backend**: FastAPI · SQLAlchemy · PostgreSQL 15 · OpenAI / Ollama
+- **Infra**: Docker Compose
 
-### PostgreSQL + pgAdmin 실행
+## 📁 저장소 구조
+
+```
+Plainpaper_compose/
+├── Plainpaper/          # Next.js 프론트엔드
+│   └── app/(main)/
+│       ├── upload/          # 이력서 업로드
+│       ├── analysis/[id]    # ATS 분석 결과
+│       ├── essay/           # 자소서 첨삭 스튜디오
+│       ├── interview/       # AI 모의면접
+│       └── applications/    # 지원 트래커
+├── plainpaper_back/     # FastAPI 백엔드
+│   ├── services/ats.py        # ATS 점수 휴리스틱 엔진
+│   ├── services/essay_revise.py
+│   ├── services/interview.py
+│   ├── routers/               # resume/essay/interview/application ...
+│   └── workers/               # 문서 분석 파이프라인
+└── docker-compose.yml
+```
+
+## 🧪 테스트
 
 ```bash
-docker-compose up -d
-	•	PostgreSQL: localhost:5432
-	•	pgAdmin: http://localhost:5050
-🔧 Tech Stack
+cd plainpaper_back
+uv run python -m pytest tests/ -q   # 17 tests
+```
 
-Frontend
-	•	Next.js 14 (App Router)
-	•	React
-	•	TypeScript
-	•	Zustand
-	•	SWR
-	•	TailwindCSS
-	•	Shadcn UI
+## 📚 문서
 
-Backend
-	•	FastAPI
-	•	Python 3.11
-	•	SQLAlchemy / Alembic
-	•	Pydantic
-	•	OpenAI API (LLM 기반 문서 분석)
+- `ARCHITECTURE.md` — 모듈 구조와 데이터 흐름
+- `docs/` — 페이지별 API 문서
 
-Infra
-	•	Docker / Docker Compose
-	•	Cloudtype (Backend / DB 배포)
-	•	Vercel (Frontend 배포)
-	•	PostgreSQL
-	•	JWT Auth
+## 🚧 로드맵
 
-⸻
+- [x] 이력서 업로드 + ATS 분석
+- [x] 자소서 AI 첨삭 스튜디오
+- [x] AI 모의면접 (STAR 피드백)
+- [x] 지원 트래커
+- [ ] 채용공고(JD) 대비 적합도 분석
+- [ ] 다국어 지원 (EN)
+- [ ] 이력서 템플릿 다운로드
 
-🚀 주요 기능
+## 🤝 기여
 
-📤 문서 업로드
-	•	PDF 업로드
-	•	텍스트 자동 추출 & 전처리
+스타 ⭐ 한 번 눌러주시면 개발에 큰 힘이 됩니다.
+Issue · PR 환영합니다. 행동 강령은 [Contributor Covenant](https://www.contributor-covenant.org/)를 따릅니다.
 
-🧠 AI 분석
-	•	OpenAI 기반 LLM 분석 파이프라인
-	•	핵심요약, 중요문장, 문서 구조 분석(TOC)
-	•	분석 결과 재생성 기능
+## 📄 라이선스
 
-📊 분석 결과 페이지
-	•	요약/하이라이트 표시
-	•	프로젝트별 분석 이력 조회
-	•	분석서 보기 / 분석서 재생성
-
-🔐 유저 관리
-	•	JWT 기반 로그인/회원가입
-	•	프로젝트 CRUD
-	•	분석 상태 실시간 확인
-
-🗺️ Roadmap
-	•	OCR 이미지 문서 분석 기능
-	•	PDF 분석 속도 개선 (비동기 큐 처리)
-	•	사용자 대시보드 강화
-	•	분석서 PDF Export 고도화
-	•	멀티 프로젝트/팀 기능
+[MIT](LICENSE) — 자유롭게 사용하고, 포크하고, 배포하세요.
