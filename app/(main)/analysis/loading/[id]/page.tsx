@@ -14,18 +14,35 @@ export default function AnalysisLoadingPage() {
   });
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
     const interval = setInterval(async () => {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/analysis/status/${documentId}`,
-        { cache: "no-store" }
-      );
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/analysis/status/${documentId}`,
+          {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            cache: "no-store",
+          }
+        );
 
-      const data = await res.json();
-      setStatus({ status: data.status, progress: data.progress });
+        const data = await res.json();
+        setStatus({
+          status: data.status ?? "pending",
+          progress: Number(data.progress) || 0,
+        });
 
-      if (data.status === "done") {
+        if (data.status === "done") {
+          clearInterval(interval);
+          router.push(`/analysis/${documentId}`);
+        }
+
+        if (data.status === "not_found" || data.status === "error") {
+          clearInterval(interval);
+          router.push("/mypage");
+        }
+      } catch {
         clearInterval(interval);
-        router.push(`/analysis/${documentId}`);
+        router.push("/mypage");
       }
     }, 1500);
 

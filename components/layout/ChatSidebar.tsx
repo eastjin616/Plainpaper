@@ -11,20 +11,12 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 
-// 👇 DropdownMenu (ChatGPT 모델 선택 스타일)
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "../ui/skeleton";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { on } from "events";
+import { ChatMessage } from "@/app/_types/chat";
+import { API_URL, authHeaders, extractDetail, getErrorMessage } from "@/lib/api";
 
 type ChatSidebarProps = {
   open: boolean;
@@ -32,47 +24,64 @@ type ChatSidebarProps = {
   document_id: string;
 };
 
+type ChatResponse = {
+  answer?: string;
+};
+
 export default function ChatSidebar({
   open,
   onOpenChange,
   document_id,
 }: ChatSidebarProps) {
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
-  const [model, setModel] = useState<"gpt" | "gemini">("gpt");
   const [loading, setLoading] = useState(false);
-
-  // 🚀 백엔드 API URL
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const [error, setError] = useState<string | null>(null);
 
   const sendMessage = async () => {
-    if (!input.trim()) return;
+    const question = input.trim();
+    if (!question) return;
 
-    const userMsg = { role: "user", content: input };
+    const userMsg: ChatMessage = {
+      id: Date.now(),
+      role: "user",
+      content: question,
+    };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
+    setError(null);
 
     setLoading(true);
 
-    const res = await fetch(`${API_URL}/analysis/${document_id}/ask`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question: input }),
-    });
+    try {
+      const res = await fetch(`${API_URL}/analysis/${document_id}/ask`, {
+        method: "POST",
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ question }),
+      });
 
-    const json = await res.json();
+      if (!res.ok) {
+        const payload = await res.json().catch(() => null);
+        throw new Error(extractDetail(payload, "AI 응답을 가져오지 못했습니다."));
+      }
 
-    setMessages((prev) => [
-      ...prev,
-      { role: "assistant", content: json.answer }
-    ]);
+      const json = (await res.json()) as ChatResponse;
+      const answer = json.answer ?? "응답이 비어 있습니다.";
 
-    setLoading(false);
+      setMessages((prev) => [
+        ...prev,
+        { id: Date.now() + 1, role: "assistant", content: answer },
+      ]);
+    } catch (err) {
+      setError(getErrorMessage(err, "AI 응답을 가져오지 못했습니다."));
+    } finally {
+      setLoading(false);
+    }
   };
 
   // 엔터키로도 전송 가능하게
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+    if (e.key === "Enter" && !e.nativeEvent.isComposing) {
       sendMessage();
     }
   };
@@ -90,37 +99,13 @@ export default function ChatSidebar({
           </SheetDescription>
         </SheetHeader>
 
-        {/* 🔥 모델 선택 Dropdown (너가 말한 ChatGPT 모델 선택 UI) */}
-        <div className="mt-5">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full justify-between font-medium"
-              >
-                {model === "gpt" ? "GPT (OpenAI)" : "Gemini (Google)"}
-              </Button>
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent className="w-56">
-              <DropdownMenuLabel>AI 모델 선택</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem onClick={() => setModel("gpt")}>
-                GPT (OpenAI)
-              </DropdownMenuItem>
-
-              <DropdownMenuItem onClick={() => setModel("gemini")}>
-                Gemini (Google)
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
         {/* 🔥 메시지 리스트 */}
         <div className="flex flex-col gap-4 mt-6 h-[65vh] overflow-y-auto pr-1">
-          {messages.map((m, i) => (
-            <div key={i} className={m.role === "user" ? "text-right" : "text-left"}>
+          {messages.map((m) => (
+            <div
+              key={m.id}
+              className={m.role === "user" ? "text-right" : "text-left"}
+            >
               <div
                 className={`inline-block px-4 py-2 rounded-2xl max-w-[80%] break-words ${m.role === "user"
                   ? "bg-primary text-primary-foreground rounded-br-none"
@@ -131,6 +116,12 @@ export default function ChatSidebar({
               </div>
             </div>
           ))}
+
+          {error && (
+            <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+              {error}
+            </div>
+          )}
 
           {/* --- 🔥 AI 응답 스켈레톤 --- */}
           {loading && (
@@ -152,10 +143,7 @@ export default function ChatSidebar({
             placeholder="무엇이 궁금하신가요?"
             onKeyDown={handleKeyDown}
           />
-          <Button
-            onClick={sendMessage}
-            className="px-4 py-2"
-          >
+          <Button onClick={sendMessage} className="px-4 py-2">
             전송
           </Button>
         </div>

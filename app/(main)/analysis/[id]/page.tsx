@@ -15,6 +15,8 @@ import {
 
 import ProtectedPage from "@/app/_contexts/ProtectedPage";
 import ChatSidebar from "@/components/layout/ChatSidebar";
+import { AnalysisResult } from "@/app/_types/analysis";
+import { API_URL, authHeaders } from "@/lib/api";
 
 import {
   Dialog,
@@ -26,15 +28,20 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const EMPTY_METRICS = {
+  readability: 0,
+  reliability: 0,
+  risk: 0,
+};
 
 export default function AnalysisResultPage() {
   const router = useRouter();
   const params = useParams();
   const documentId = params.id as string;
 
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<AnalysisResult | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   const [isOpen, setIsOpen] = useState(false);
@@ -44,8 +51,6 @@ export default function AnalysisResultPage() {
 
   const handleSubmit = () => {
     // TODO: API 연동
-    console.log("Rating:", rating);
-    console.log("Comment:", comment);
     setIsOpen(false);
   };
 
@@ -53,25 +58,33 @@ export default function AnalysisResultPage() {
     async function fetchResult() {
       try {
         const res = await fetch(`${API_URL}/analysis/${documentId}`, {
+          headers: authHeaders(),
           cache: "no-store",
         });
 
-        const json = await res.json();
-        console.log("📌 분석 결과 응답:", json);
+        if (!res.ok) {
+          setNotFound(true);
+          setData(null);
+          return;
+        }
+
+        const json = (await res.json()) as Partial<AnalysisResult>;
 
         if (json.status !== "done") {
           setData(null);
           return;
         }
 
+        setNotFound(false);
         setData({
+          status: "done",
           summary: json.summary ?? "",
           description: json.description ?? [],
           highlights: json.highlights ?? [],
-          metrics: json.metrics ?? {},
+          metrics: json.metrics ?? EMPTY_METRICS,
         });
       } catch (err) {
-        console.error("🔥 fetch 실패:", err);
+        console.error(err);
         setData(null);
       } finally {
         setLoading(false);
@@ -86,6 +99,16 @@ export default function AnalysisResultPage() {
       <ProtectedPage>
         <main className="flex items-center justify-center min-h-screen text-zinc-500">
           분석 결과 불러오는 중...
+        </main>
+      </ProtectedPage>
+    );
+  }
+
+  if (notFound) {
+    return (
+      <ProtectedPage>
+        <main className="flex items-center justify-center min-h-screen text-zinc-500">
+          문서를 찾을 수 없습니다. 문서가 삭제되었거나 잘못된 주소입니다.
         </main>
       </ProtectedPage>
     );
