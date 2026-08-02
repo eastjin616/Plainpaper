@@ -6,18 +6,30 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Upload, FileText, Sparkles } from "lucide-react";
 import ProtectedPage from "@/app/_contexts/ProtectedPage";
+import { API_URL, extractDetail, getErrorMessage } from "@/lib/api";
 
 export default function UploadPage() {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [dragActive, setDragActive] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
     if (selected) {
       setFile(selected);
       setMessage(`📄 ${selected.name}`);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragActive(false);
+    const dropped = e.dataTransfer.files?.[0];
+    if (dropped) {
+      setFile(dropped);
+      setMessage(`📄 ${dropped.name}`);
     }
   };
 
@@ -37,7 +49,7 @@ export default function UploadPage() {
       const token = localStorage.getItem("token");
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/files/upload`,
+        `${API_URL}/files/upload`,
         {
           method: "POST",
           headers: {
@@ -47,15 +59,16 @@ export default function UploadPage() {
         }
       );
 
-      if (!res.ok) throw new Error("업로드 실패");
+      if (!res.ok) {
+        const payload = await res.json().catch(() => null);
+        throw new Error(extractDetail(payload, "업로드 실패"));
+      }
       const data = await res.json();
-      console.log("✅ 업로드 성공:", data);
 
       // 🔄 로딩 페이지로 이동
       router.push(`/analysis/loading/${data.document_id}`);
     } catch (err) {
-      console.error(err);
-      setMessage("❌ 업로드 중 오류가 발생했습니다.");
+      setMessage(`❌ ${getErrorMessage(err, "업로드 중 오류가 발생했습니다.")}`);
     } finally {
       setLoading(false);
     }
@@ -84,7 +97,17 @@ export default function UploadPage() {
             {/* 업로드 영역 */}
             <label
               htmlFor="file"
-              className="border-2 border-dashed border-border rounded-xl py-10 px-6 cursor-pointer hover:bg-accent/50 transition-colors flex flex-col items-center justify-center"
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragActive(true);
+              }}
+              onDragLeave={() => setDragActive(false)}
+              onDrop={handleDrop}
+              className={`border-2 border-dashed rounded-xl py-10 px-6 cursor-pointer transition-colors flex flex-col items-center justify-center ${
+                dragActive
+                  ? "border-primary bg-primary/10"
+                  : "border-border hover:bg-accent/50"
+              }`}
             >
               <Upload className="w-10 h-10 text-primary mb-3" />
               <span className="font-medium text-foreground mb-1">
