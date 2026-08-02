@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import ProtectedPage from "@/app/_contexts/ProtectedPage";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +13,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import type {
+  BoardComment,
+  BoardDetail,
+} from "@/app/_types/board";
+import { extractDetail } from "@/lib/api";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -26,26 +31,37 @@ const statusLabels: Record<string, string> = {
   answered: "답변완료",
 };
 
-type BoardDetail = {
-  id: string;
-  title: string;
-  author: string;
-  createdAt: string;
-  views: number;
-  status: string;
-  content: string;
-  answer: string | null;
+type BoardRaw = {
+  id?: string;
+  board_id?: string;
+  title?: string;
+  subject?: string;
+  created_by?: string;
+  author?: string;
+  writer?: string;
+  created_at?: string;
+  createdAt?: string;
+  view_count?: number | string;
+  views?: number | string;
+  contents?: string;
+  content?: string;
+  question?: string;
+  answer?: string;
+  response?: string;
+  accepted_comment_?: boolean | string;
 };
 
-type BoardComment = {
-  id: string;
-  contents: string | null;
-  createdAt: string;
-  createdBy: string | null;
+type BoardCommentRaw = {
+  id?: string;
+  contents?: string;
+  created_at?: string;
+  createdAt?: string;
+  created_by?: string;
+  createdBy?: string;
 };
 
 // 상세 응답 필드를 화면용 데이터로 정규화.
-const normalizeBoardDetail = (raw: any): BoardDetail => ({
+const normalizeBoardDetail = (raw: BoardRaw): BoardDetail => ({
   id: raw?.id ?? raw?.board_id ?? "",
   title: raw?.title ?? raw?.subject ?? "",
   author: raw?.created_by ?? raw?.author ?? raw?.writer ?? "",
@@ -56,7 +72,7 @@ const normalizeBoardDetail = (raw: any): BoardDetail => ({
   answer: raw?.answer ?? raw?.response ?? null,
 });
 
-const normalizeBoardComment = (raw: any): BoardComment => ({
+const normalizeBoardComment = (raw: BoardCommentRaw): BoardComment => ({
   id: raw?.id ?? "",
   contents: raw?.contents ?? "",
   createdAt: raw?.created_at ?? raw?.createdAt ?? "",
@@ -99,16 +115,16 @@ export default function BoardDetailPage() {
 
         if (!res.ok) {
           const errorPayload = await res.json().catch(() => null);
-          const message = errorPayload?.detail ?? "게시물 정보를 불러오지 못했습니다.";
-          throw new Error(message);
+          throw new Error(
+            extractDetail(errorPayload, "게시물 정보를 불러오지 못했습니다.")
+          );
         }
 
         const json = await res.json();
-        const rawDetail = json?.data ?? json?.board ?? json;
+        const rawDetail = (json?.data ?? json?.board ?? json) as BoardRaw;
         setDetail(normalizeBoardDetail(rawDetail));
         setError(null);
       } catch (err) {
-        console.error("🔥 게시물 불러오기 실패:", err);
         setError(
           err instanceof Error ? err.message : "게시물 정보를 불러오지 못했습니다."
         );
@@ -121,7 +137,7 @@ export default function BoardDetailPage() {
     loadDetail();
   }, [boardId]);
 
-  const loadComments = async () => {
+  const loadComments = useCallback(async () => {
     if (!boardId) return;
     try {
       setCommentsLoading(true);
@@ -133,17 +149,18 @@ export default function BoardDetailPage() {
 
       if (!res.ok) {
         const errorPayload = await res.json().catch(() => null);
-        const message =
-          errorPayload?.detail ?? "답변 정보를 불러오지 못했습니다.";
-        throw new Error(message);
+        throw new Error(
+          extractDetail(errorPayload, "답변 정보를 불러오지 못했습니다.")
+        );
       }
 
       const json = await res.json();
-      const items = Array.isArray(json?.items) ? json.items : [];
+      const items: BoardCommentRaw[] = Array.isArray(json?.items)
+        ? json.items
+        : [];
       setComments(items.map(normalizeBoardComment));
       setCommentError(null);
     } catch (err) {
-      console.error("🔥 답변 불러오기 실패:", err);
       setCommentError(
         err instanceof Error ? err.message : "답변 정보를 불러오지 못했습니다."
       );
@@ -151,11 +168,11 @@ export default function BoardDetailPage() {
     } finally {
       setCommentsLoading(false);
     }
-  };
+  }, [boardId]);
 
   useEffect(() => {
     loadComments();
-  }, [boardId]);
+  }, [boardId, loadComments]);
 
   const handleDelete = async () => {
     if (!boardId || deleting) return;
@@ -175,8 +192,7 @@ export default function BoardDetailPage() {
       }
 
       router.push("/board");
-    } catch (err) {
-      console.error("🔥 게시물 삭제 실패:", err);
+    } catch {
       alert("게시물 삭제에 실패했습니다.");
     } finally {
       setDeleting(false);
@@ -205,14 +221,14 @@ export default function BoardDetailPage() {
 
       if (!res.ok) {
         const errorPayload = await res.json().catch(() => null);
-        const message = errorPayload?.detail ?? "답변 등록에 실패했습니다.";
-        throw new Error(message);
+        throw new Error(
+          extractDetail(errorPayload, "답변 등록에 실패했습니다.")
+        );
       }
 
       setCommentInput("");
       await loadComments();
     } catch (err) {
-      console.error("🔥 답변 등록 실패:", err);
       alert(
         err instanceof Error ? err.message : "답변 등록에 실패했습니다."
       );
@@ -237,13 +253,13 @@ export default function BoardDetailPage() {
 
       if (!res.ok) {
         const errorPayload = await res.json().catch(() => null);
-        const message = errorPayload?.detail ?? "답변 삭제에 실패했습니다.";
-        throw new Error(message);
+        throw new Error(
+          extractDetail(errorPayload, "답변 삭제에 실패했습니다.")
+        );
       }
 
       await loadComments();
     } catch (err) {
-      console.error("🔥 답변 삭제 실패:", err);
       alert(
         err instanceof Error ? err.message : "답변 삭제에 실패했습니다."
       );
