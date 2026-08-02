@@ -3,16 +3,15 @@ import ResetPasswordForm from "./ResetPasswordForm";
 export const dynamic = "force-dynamic";
 
 type ResetPasswordPageProps = {
-  searchParams?: {
-    token?: string | string[];
-  };
+  searchParams: Promise<{ token?: string | string[] }>;
 };
 
-export default function ResetPasswordPage({
+export default async function ResetPasswordPage({
   searchParams,
 }: ResetPasswordPageProps) {
+  const params = await searchParams;
   const token =
-    typeof searchParams?.token === "string" ? searchParams.token : null;
+    typeof params?.token === "string" ? params.token : null;
 
   return <ResetPasswordForm token={token} />;
 }

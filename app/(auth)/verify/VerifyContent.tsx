@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { API_URL, extractDetail, getErrorMessage } from "@/lib/api";
 
 export default function VerifyContent() {
   const searchParams = useSearchParams();
@@ -23,20 +24,20 @@ export default function VerifyContent() {
     const verify = async () => {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/verify-email?code=${code}`
+          `${API_URL}/verify-email?code=${code}`
         );
 
-        const data = await res.json();
+        const data = await res.json().catch(() => null);
 
         if (!res.ok) {
-          throw new Error(data.detail || "이메일 인증에 실패했습니다.");
+          throw new Error(extractDetail(data, "이메일 인증에 실패했습니다."));
         }
 
         setStatus("success");
         setMessage(data.message || "이메일 인증이 완료되었습니다.");
-      } catch (err: any) {
+      } catch (err) {
         setStatus("error");
-        setMessage(err.message ?? "이메일 인증 중 오류가 발생했습니다.");
+        setMessage(getErrorMessage(err, "이메일 인증 중 오류가 발생했습니다."));
       }
     };
 

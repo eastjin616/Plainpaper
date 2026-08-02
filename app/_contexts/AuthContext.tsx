@@ -2,47 +2,52 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 import { UserType } from "@/app/_types/auth";
+import { API_URL, extractDetail } from "@/lib/api";
 
 interface AuthContextType {
   token: string | null;
   user: UserType | null;
   isLoggedIn: boolean;
   loading: boolean;
-  login: (token: string) => void;
+  login: (token: string) => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+function readStoredToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("token");
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [token, setToken] = useState<string | null>(null);
-  const [user, setUser] = useState<UserType | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  // 🔥 앱 시작 시 localStorage → token 로드 + /auth/me 서버 요청
-  useEffect(() => {
-    const savedToken = localStorage.getItem("token");
-    if (!savedToken) {
-      setLoading(false);
-      return;
+  const [token, setToken] = useState<string | null>(readStoredToken);
+  const [user, setUser] = useState<UserType | null>(() => {
+    if (typeof window === "undefined") return null;
+    const raw = localStorage.getItem("user");
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as UserType;
+    } catch {
+      return null;
     }
+  });
+  const [loading, setLoading] = useState(() => readStoredToken() !== null);
 
-    setToken(savedToken);
+  // 앱 시작 시 /auth/me로 토큰 유효성 확인
+  useEffect(() => {
+    if (!token) return;
 
-    // 서버에서 사용자 정보 가져오기
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
-      headers: {
-        Authorization: `Bearer ${savedToken}`,
-      },
+    fetch(`${API_URL}/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
     })
       .then(async (res) => {
         if (!res.ok) throw new Error("Unauthorized");
-        const data = await res.json();
+        const data = (await res.json()) as UserType;
         setUser(data);
         localStorage.setItem("user", JSON.stringify(data));
       })
       .catch(() => {
-        // 토큰이 유효하지 않으면 로그아웃 처리
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         setToken(null);
@@ -51,22 +56,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .finally(() => {
         setLoading(false);
       });
-  }, []);
+  }, [token]);
 
-  // 로그인 → token만 저장하고, user는 /auth/me에서 자동으로 읽힘
+  // 로그인 → 토큰 저장 후 /auth/me에서 사용자 정보 로드
   const login = async (newToken: string) => {
-    localStorage.setItem("token", newToken);
-    setToken(newToken);
-
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
-      headers: {
-        Authorization: `Bearer ${newToken}`,
-      },
+    const res = await fetch(`${API_URL}/auth/me`, {
+      headers: { Authorization: `Bearer ${newToken}` },
     });
 
-    const userData = await res.json();
-    setUser(userData);
+    if (!res.ok) {
+      const payload = await res.json().catch(() => null);
+      throw new Error(extractDetail(payload, "로그인에 실패했습니다."));
+    }
+
+    const userData = (await res.json()) as UserType;
+    localStorage.setItem("token", newToken);
     localStorage.setItem("user", JSON.stringify(userData));
+    setToken(newToken);
+    setUser(userData);
   };
 
   const logout = () => {

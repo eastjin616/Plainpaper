@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { API_URL, extractDetail, getErrorMessage } from "@/lib/api";
 
 type ResetPasswordFormProps = {
   token: string | null;
@@ -41,7 +42,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password`,
+        `${API_URL}/auth/reset-password`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -54,15 +55,15 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.detail || "비밀번호 재설정에 실패했습니다.");
+        throw new Error(extractDetail(data, "비밀번호 재설정에 실패했습니다."));
       }
 
       setSuccess(data.message || "비밀번호가 재설정되었습니다.");
       setNewPassword("");
       setConfirmPassword("");
       setTimeout(() => router.push("/login"), 1200);
-    } catch (err: any) {
-      setError(err.message ?? "요청 중 오류가 발생했습니다.");
+    } catch (err) {
+      setError(getErrorMessage(err, "요청 중 오류가 발생했습니다."));
     } finally {
       setLoading(false);
     }
