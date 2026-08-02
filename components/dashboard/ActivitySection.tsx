@@ -5,9 +5,10 @@ import type { ActivityItem } from "@/components/dashboard/types";
 
 type ActivitySectionProps = {
   activities: ActivityItem[];
+  loading?: boolean;
 };
 
-export default function ActivitySection({ activities }: ActivitySectionProps) {
+export default function ActivitySection({ activities, loading }: ActivitySectionProps) {
   return (
     <Card className="border-border bg-card/70 shadow-xl backdrop-blur">
       <CardContent className="flex h-full flex-col gap-5 p-6">
@@ -23,30 +24,48 @@ export default function ActivitySection({ activities }: ActivitySectionProps) {
           </span>
         </div>
 
-        <div className="flex flex-col gap-3">
-          {activities.map((activity, index) => (
-            <div
-              key={activity.id}
-              className={`flex items-start justify-between gap-3 rounded-xl border border-border bg-background/80 p-4 text-sm shadow-sm animate-in fade-in slide-in-from-bottom-3 ${
-                index === 0 ? "delay-100" : index === 1 ? "delay-200" : "delay-300"
-              }`}
-            >
-              <div className="flex flex-col gap-1">
-                <p className="font-medium text-foreground">{activity.title}</p>
-                <p className="text-xs text-muted-foreground">{activity.app}</p>
+        {loading ? (
+          <div className="flex flex-col gap-3">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="h-16 animate-pulse rounded-xl border border-border bg-background/60"
+              />
+            ))}
+          </div>
+        ) : activities.length === 0 ? (
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            아직 활동 내역이 없습니다. 첫 문서를 업로드해보세요.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {activities.map((activity, index) => (
+              <div
+                key={activity.id}
+                className={`flex items-start justify-between gap-3 rounded-xl border border-border bg-background/80 p-4 text-sm shadow-sm animate-in fade-in slide-in-from-bottom-3 ${
+                  index === 0 ? "delay-100" : index === 1 ? "delay-200" : "delay-300"
+                }`}
+              >
+                <div className="flex flex-col gap-1">
+                  <p className="font-medium text-foreground">{activity.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {activity.app}
+                    {activity.author ? ` · ${activity.author}` : ""}
+                  </p>
+                </div>
+                <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground">
+                  <span className="rounded-full border border-border bg-card px-2 py-1">
+                    {activity.status}
+                  </span>
+                  <span>{activity.time}</span>
+                </div>
               </div>
-              <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground">
-                <span className="rounded-full border border-border bg-card px-2 py-1">
-                  {activity.status}
-                </span>
-                <span>{activity.time}</span>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         <div className="mt-auto rounded-xl border border-dashed border-border bg-background/60 p-4 text-xs text-muted-foreground">
-          Activity Log는 Workspace 기준으로 누적됩니다.
+          Activity Log는 문서 단위로 누적됩니다.
         </div>
       </CardContent>
     </Card>
