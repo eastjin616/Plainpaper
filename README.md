@@ -1,124 +1,48 @@
-# 📄 Plainpaper – 보험·계약서류 AI 분석 서비스
+# 📄 Plainpaper — 보험·계약서류 AI 분석 + 노후 준비 체크 (프론트엔드)
 
-**Plainpaper**는 보험 약관, 금융 문서, 계약서처럼 길고 복잡한 문서를  
-**업로드 → AI 자동 분석 → 핵심 요약 · 중요 문장 탐지 · 구조 분석(TOC)**  
-까지 자동으로 처리해주는 웹 서비스입니다.
+Next.js 16 · React 19 · TypeScript · Tailwind CSS 4 · Shadcn UI 기반 프론트엔드입니다.
+백엔드는 [plainpaper_back](https://github.com/eastjin616/plainpaper_back) (FastAPI)과 REST로 통신합니다.
 
-사용자는 복잡한 서류를 빠르게 이해할 수 있고, 핵심 정보만 모아보고 싶은 실사용자 경험을 목표로 하고 있습니다.
-
----
-
-## 🎥 Demo Video
-
-### ▸ 메인 기능 (PDF 분석 흐름)
-
-https://github.com/user-attachments/assets/9778dc1e-55f7-4709-bc38-0a9221cb2881
-
----
-
-### ▸ AI 채팅 기능
-
-https://github.com/user-attachments/assets/212322ce-aa8d-4292-8ed6-caac534350f8
-
-
----
-
-# 🏗️ Architecture
-Next.js (Vercel)
--> (REST)
-FastAPI (Cloudtype Docker)
-->
-PostgreSQL (Cloudtype Docker)
-
----
-### 개발 환경
-- 로컬에서는 **Docker + docker-compose** 로  
-  Postgres + pgAdmin 환경 실행  
-- 프론트는 로컬 Next.js dev 서버로 개발  
-- 백엔드는 FastAPI + Uvicorn
-
----
-
-# 🌐 Deployment
-
-### 🟦 Frontend (Next.js)
-- **Vercel** 배포  
-- 자동 빌드 및 CI 지원  
-- 환경 변수 기반으로 백엔드 URL 연동  
-
-### 🟧 Backend (FastAPI)
-- **Cloudtype Docker 이미지 기반 배포**
-- Uvicorn 서버로 실행  
-- OpenAI Key, DB URL, JWT Secret 등 환경 변수 적용
-
-### 🟨 Database (PostgreSQL)
-- **Cloudtype Docker PostgreSQL**
-- 백엔드와 동일 프로젝트 내 서비스로 구성  
-- 로컬 개발 시 docker-compose로 별도 실행
-
----
-
-# 🐳 Local Development (Docker)
-
-로컬에서 FastAPI + DB 테스트를 위해 Docker 설정을 사용합니다.
-
-### PostgreSQL + pgAdmin 실행
+## 실행
 
 ```bash
-docker-compose up -d
-	•	PostgreSQL: localhost:5432
-	•	pgAdmin: http://localhost:5050
-🔧 Tech Stack
+npm install
+npm run dev        # 개발 (VITE 대신 Next dev, 기본 3000)
+npm run build      # 프로덕션 빌드 (컨테이너 내 3000, 호스트 매핑 3001)
+```
 
-Frontend
-	•	Next.js 14 (App Router)
-	•	React
-	•	TypeScript
-	•	Zustand
-	•	SWR
-	•	TailwindCSS
-	•	Shadcn UI
+> Docker Compose 환경에서는 코드 수정 후 `docker compose -f ../docker-compose.yml up -d --build frontend` 로 재빌드해야 반영됩니다.
 
-Backend
-	•	FastAPI
-	•	Python 3.11
-	•	SQLAlchemy / Alembic
-	•	Pydantic
-	•	OpenAI API (LLM 기반 문서 분석)
+## 페이지 구조 (`app/`)
 
-Infra
-	•	Docker / Docker Compose
-	•	Cloudtype (Backend / DB 배포)
-	•	Vercel (Frontend 배포)
-	•	PostgreSQL
-	•	JWT Auth
+| 경로 | 설명 |
+|---|---|
+| `/` | 대시보드 (허브) — 문서 통계·활동·앱 카드·관리자/사용자 모드 |
+| `/login` `/signup` `/verify` `/reset-password` | 인증 (이메일 인증 가입, 아이디/비밀번호 로그인) |
+| `/upload` | 문서 업로드 (드래그앤드롭) |
+| `/analysis/[id]` | 분석 결과 (요약·하이라이트·메트릭·Q&A) |
+| `/analysis/loading/[id]` | 분석 진행 폴링 |
+| `/senior` | 노후 준비 체크 홈 + 진단 이력 |
+| `/senior/survey` | 18문항 설문 (한 화면 한 질문, 자동 임시저장) |
+| `/senior/result/[id]` | 진단 결과 (점수·등급·영역·자산 비율·AI 조언) |
+| `/board` | 게시판 + 댓글 |
+| `/analytics` | 사용자/문서 통계 |
+| `/mypage` | 내 문서 카드 + 노후 준비 바로가기 |
+| `/setting` | 설정 |
 
-⸻
+## 주요 모듈
 
-🚀 주요 기능
+- `lib/api.ts` — `API_URL`/`authHeaders()`/`extractDetail`/`getErrorMessage` 공통 API 헬퍼
+- `app/_contexts/AuthContext.tsx` — JWT 인증 상태, `ProtectedPage` 래퍼
+- `components/dashboard/SeniorHubModal.tsx` — 기능 선택 모달 (React Portal, 첫 로그인 1회 + 헤더 버튼)
+- `components/layout/Header.tsx` — 상단 메뉴 (기능 선택·마이페이지·설정·모바일 Sheet)
+- `components/dashboard/*` — 대시보드 섹션 (Stats/Activity/Apps/Workspace)
 
-📤 문서 업로드
-	•	PDF 업로드
-	•	텍스트 자동 추출 & 전처리
+## 설문 임시저장
 
-🧠 AI 분석
-	•	OpenAI 기반 LLM 분석 파이프라인
-	•	핵심요약, 중요문장, 문서 구조 분석(TOC)
-	•	분석 결과 재생성 기능
+설문 답변은 입력 시마다 `localStorage`(`plainpaper_survey_draft`)에 자동 저장됩니다.
+이탈 시 브라우저 경고, 재방문 시 "이어서 작성 / 새로 시작" 배너가 표시되며, 제출 성공 시 자동 삭제됩니다.
 
-📊 분석 결과 페이지
-	•	요약/하이라이트 표시
-	•	프로젝트별 분석 이력 조회
-	•	분석서 보기 / 분석서 재생성
+## 디자인
 
-🔐 유저 관리
-	•	JWT 기반 로그인/회원가입
-	•	프로젝트 CRUD
-	•	분석 상태 실시간 확인
-
-🗺️ Roadmap
-	•	OCR 이미지 문서 분석 기능
-	•	PDF 분석 속도 개선 (비동기 큐 처리)
-	•	사용자 대시보드 강화
-	•	분석서 PDF Export 고도화
-	•	멀티 프로젝트/팀 기능
+시스템 테마(다크/라이트) 대응, 노후 준비 영역별 시맨틱 컬러(재무=파랑/건강=초록/여가=보라/관계=주황), 어르신 친화 큰 UI. 자세한 내용은 루트 `DESIGN.md` 참조.

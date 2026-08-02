@@ -18,13 +18,17 @@ export default function DonutChart({ segments, title, className }: DonutChartPro
     segments.reduce((sum, segment) => sum + segment.value, 0),
     1
   );
-  let acc = 0;
-  const gradientStops = segments.map((segment) => {
-    const start = acc;
-    const end = acc + (segment.value / total) * 100;
-    acc = end;
-    return `${segment.color} ${start}% ${end}%`;
-  });
+
+  const gradientStops = segments
+    .reduce<{ color: string; start: number; end: number }[]>(
+      (acc, segment) => {
+        const start = acc.length === 0 ? 0 : acc[acc.length - 1].end;
+        const end = start + (segment.value / total) * 100;
+        return [...acc, { color: segment.color, start, end }];
+      },
+      []
+    )
+    .map((segment) => `${segment.color} ${segment.start}% ${segment.end}%`);
 
   return (
     <div className={cn("flex flex-col gap-4", className)}>

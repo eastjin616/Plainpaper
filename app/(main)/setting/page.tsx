@@ -7,6 +7,7 @@ import { useAuth } from "@/app/_contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { API_URL, extractDetail, getErrorMessage } from "@/lib/api";
 
 export default function SettingPage() {
   const { token, logout } = useAuth();
@@ -35,7 +36,7 @@ export default function SettingPage() {
       return;
     }
 
-    if (newPassword.length < 4) {
+    if (newPassword.length < 8) {
       setError("새 비밀번호는 8자 이상이어야 합니다.");
       return;
     }
@@ -43,7 +44,7 @@ export default function SettingPage() {
     setLoading(true);
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/change-password`,
+        `${API_URL}/auth/change-password`,
         {
           method: "POST",
           headers: {
@@ -60,7 +61,7 @@ export default function SettingPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.detail || "비밀번호 변경에 실패했습니다.");
+        throw new Error(extractDetail(data, "비밀번호 변경에 실패했습니다."));
       }
 
       setSuccess("비밀번호가 변경되었습니다. 다시 로그인해주세요.");
@@ -73,8 +74,8 @@ export default function SettingPage() {
         logout();
         router.push("/login");
       }, 1500);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err, "비밀번호 변경에 실패했습니다."));
     } finally {
       setLoading(false);
     }
