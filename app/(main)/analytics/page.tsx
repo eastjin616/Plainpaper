@@ -13,46 +13,19 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import LineChart from "@/components/analytics/LineChart";
 import DonutChart from "@/components/analytics/DonutChart";
+import { useAnalytics } from "@/components/analytics/use-analytics";
+import { Button } from "@/components/ui/button";
+import type { AnalyticsOverview, AnalyticsTrend } from "@/app/_types/analytics";
 
 type Period = "7d" | "30d";
 
-const kpiData = [
-  {
-    label: "총 문서 수",
-    value: "1,284",
-    delta: 12.4,
-    trend: "up",
-    icon: FileText,
-  },
-  {
-    label: "평균 위험도",
-    value: "42.6",
-    delta: -3.1,
-    trend: "down",
-    icon: ShieldAlert,
-  },
-  {
-    label: "AI 분석 실행 수",
-    value: "3,982",
-    delta: 18.9,
-    trend: "up",
-    icon: Sparkles,
-  },
-  {
-    label: "문서 기반 질문 수",
-    value: "1,142",
-    delta: 6.8,
-    trend: "up",
-    icon: MessageSquareText,
-  },
-  {
-    label: "활성 사용자 수",
-    value: "96",
-    delta: 2.2,
-    trend: "up",
-    icon: Users,
-  },
-];
+const kpiIcons: Record<string, typeof FileText> = {
+  documents: FileText,
+  risk: ShieldAlert,
+  ai: Sparkles,
+  questions: MessageSquareText,
+  users: Users,
+};
 
 const trendSeries = [
   { key: "documents", label: "문서 업로드", color: "#1d4ed8" },
@@ -60,56 +33,58 @@ const trendSeries = [
   { key: "questions", label: "질문 수", color: "#38bdf8" },
 ];
 
-const trendData: Record<Period, Record<string, number | string>[]> = {
-  "7d": [
-    { label: "Mon", documents: 18, ai: 42, questions: 20 },
-    { label: "Tue", documents: 22, ai: 38, questions: 26 },
-    { label: "Wed", documents: 28, ai: 55, questions: 33 },
-    { label: "Thu", documents: 20, ai: 48, questions: 30 },
-    { label: "Fri", documents: 34, ai: 62, questions: 40 },
-    { label: "Sat", documents: 26, ai: 51, questions: 28 },
-    { label: "Sun", documents: 30, ai: 58, questions: 36 },
-  ],
-  "30d": [
-    { label: "1W", documents: 120, ai: 280, questions: 140 },
-    { label: "2W", documents: 160, ai: 310, questions: 170 },
-    { label: "3W", documents: 190, ai: 360, questions: 210 },
-    { label: "4W", documents: 210, ai: 420, questions: 260 },
-  ],
-};
-
-const riskSegments = [
-  { label: "High", value: 26, color: "#ef4444" },
-  { label: "Medium", value: 44, color: "#f59e0b" },
-  { label: "Low", value: 30, color: "#22c55e" },
-];
-
-const documentTypes = [
-  { label: "계약서", value: 38, color: "bg-sky-500" },
-  { label: "정책 문서", value: 22, color: "bg-blue-500" },
-  { label: "리포트", value: 18, color: "bg-emerald-500" },
-  { label: "가이드", value: 12, color: "bg-amber-500" },
-  { label: "기타", value: 10, color: "bg-slate-400" },
-];
+const trendRows = (trend: AnalyticsTrend) =>
+  trend.labels.map((label, i) => ({
+    label,
+    documents: trend.documents[i] ?? 0,
+    ai: trend.ai[i] ?? 0,
+    questions: trend.questions[i] ?? 0,
+  }));
 
 export default function AnalyticsOverviewPage() {
   const [period, setPeriod] = useState<Period>("7d");
-  const data = useMemo(() => trendData[period], [period]);
+  const { data, loading, error, reload } = useAnalytics<AnalyticsOverview>(
+    "/analytics/overview"
+  );
+
+  const trendData = useMemo(
+    () => (data ? trendRows(data.trend[period]) : []),
+    [data, period]
+  );
+
+  if (loading) {
+    return (
+      <div className="py-20 text-center text-muted-foreground">
+        데이터를 불러오는 중입니다...
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="flex flex-col items-center gap-4 py-20 text-center">
+        <p className="text-destructive">{error ?? "데이터를 불러오지 못했습니다."}</p>
+        <Button variant="outline" onClick={reload}>
+          다시 시도
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <>
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        {kpiData.map((item) => {
-          const Icon = item.icon;
+        {data.kpis.map((item) => {
+          const Icon = kpiIcons[item.key] ?? FileText;
           const isPositive = item.delta >= 0;
           return (
-            <Card key={item.label} className="border-border bg-card/80 shadow-md">
+            <Card key={item.key} className="border-border bg-card/80 shadow-md">
               <CardContent className="flex flex-col gap-4 p-5">
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-xs text-muted-foreground">{item.label}</p>
                     <p className="mt-2 text-2xl font-semibold text-foreground">
-                      {item.value}
+                      {item.value.toLocaleString()}
                     </p>
                   </div>
                   <span className="rounded-2xl border border-border bg-background p-2">
@@ -121,12 +96,18 @@ export default function AnalyticsOverviewPage() {
                     isPositive ? "text-emerald-600" : "text-rose-600"
                   }`}
                 >
-                  {isPositive ? (
-                    <ArrowUpRight className="h-3.5 w-3.5" />
+                  {item.delta !== 0 ? (
+                    <>
+                      {isPositive ? (
+                        <ArrowUpRight className="h-3.5 w-3.5" />
+                      ) : (
+                        <ArrowDownRight className="h-3.5 w-3.5" />
+                      )}
+                      {Math.abs(item.delta)}% 지난 기간 대비
+                    </>
                   ) : (
-                    <ArrowDownRight className="h-3.5 w-3.5" />
+                    <span className="text-muted-foreground">데이터 충분하지 않음</span>
                   )}
-                  {Math.abs(item.delta)}% 지난 기간 대비
                 </div>
               </CardContent>
             </Card>
@@ -166,7 +147,7 @@ export default function AnalyticsOverviewPage() {
 
             <div className="flex flex-col gap-4">
               <div className="h-52 w-full">
-                <LineChart data={data} series={trendSeries} />
+                <LineChart data={trendData} series={trendSeries} />
               </div>
               <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
                 {trendSeries.map((series) => (
@@ -193,7 +174,13 @@ export default function AnalyticsOverviewPage() {
                 전체 문서의 위험도 수준을 구간별로 나눴습니다.
               </p>
             </div>
-            <DonutChart segments={riskSegments} />
+            {data.risk.every((segment) => segment.value === 0) ? (
+              <p className="py-10 text-center text-sm text-muted-foreground">
+                위험도 분석 결과가 아직 없습니다. 문서를 분석하면 여기에 표시됩니다.
+              </p>
+            ) : (
+              <DonutChart segments={data.risk} />
+            )}
           </CardContent>
         </Card>
 
@@ -207,22 +194,40 @@ export default function AnalyticsOverviewPage() {
                 워크스페이스 내 문서 유형을 비교합니다.
               </p>
             </div>
-            <div className="flex flex-col gap-4">
-              {documentTypes.map((type) => (
-                <div key={type.label} className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-foreground">{type.label}</span>
-                    <span className="text-muted-foreground">{type.value}%</span>
+            {data.types.length === 0 ? (
+              <p className="py-10 text-center text-sm text-muted-foreground">
+                업로드된 문서가 없습니다.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-4">
+                {data.types.map((type) => (
+                  <div key={type.label} className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-foreground">{type.label}</span>
+                      <span className="text-muted-foreground">
+                        {type.value}건
+                      </span>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-muted">
+                      <div
+                        className={`h-2 rounded-full ${type.color}`}
+                        style={{
+                          width: `${Math.max(
+                            4,
+                            (type.value /
+                              Math.max(
+                                1,
+                                data.types.reduce((sum, t) => sum + t.value, 0)
+                              )) *
+                              100
+                          )}%`,
+                        }}
+                      />
+                    </div>
                   </div>
-                  <div className="h-2 w-full rounded-full bg-muted">
-                    <div
-                      className={`h-2 rounded-full ${type.color}`}
-                      style={{ width: `${type.value}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </section>

@@ -1,20 +1,10 @@
-import type { ComponentType } from "react";
-
-export type WorkspaceItem = {
-  id: string;
-  name: string;
-  type: string;
-  members: string;
-  documents: number;
-  summary: string;
-};
-
 export type ActivityItem = {
   id: string;
   title: string;
   app: string;
   status: string;
   time: string;
+  author?: string;
 };
 
 export type AppItem = {
@@ -24,6 +14,18 @@ export type AppItem = {
   status: "live" | "soon";
   cta: string;
   href?: string;
-  iconName: "file-text" | "layers" | "message-circle-question" | "line-chart";
-  icon?: ComponentType<{ className?: string }>;
+  iconName:
+    | "file-text"
+    | "layers"
+    | "message-circle-question"
+    | "line-chart"
+    | "heart-pulse";
+  icon?: React.ComponentType<{ className?: string }>;
+};
+
+export type DocStats = {
+  total: number;
+  done: number;
+  processing: number;
+  error: number;
 };

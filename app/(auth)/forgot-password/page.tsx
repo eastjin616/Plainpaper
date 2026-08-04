@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { API_URL, extractDetail, getErrorMessage } from "@/lib/api";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -20,7 +21,7 @@ export default function ForgotPasswordPage() {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/password-reset`,
+        `${API_URL}/auth/password-reset`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -30,12 +31,14 @@ export default function ForgotPasswordPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.detail || "비밀번호 재설정 메일 전송에 실패했습니다.");
+        throw new Error(
+          extractDetail(data, "비밀번호 재설정 메일 전송에 실패했습니다.")
+        );
       }
 
       setSuccess(data.message || "비밀번호 재설정 메일을 보냈습니다.");
-    } catch (err: any) {
-      setError(err.message ?? "요청 중 오류가 발생했습니다.");
+    } catch (err) {
+      setError(getErrorMessage(err, "요청 중 오류가 발생했습니다."));
     } finally {
       setLoading(false);
     }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   ArrowUpRight,
   FileText,
+  HeartPulse,
   Layers,
   LineChart,
   MessageCircleQuestion,
@@ -22,6 +23,7 @@ const iconMap = {
   layers: Layers,
   "message-circle-question": MessageCircleQuestion,
   "line-chart": LineChart,
+  "heart-pulse": HeartPulse,
 };
 
 export default function AppsSection({ apps, mode }: AppsSectionProps) {
