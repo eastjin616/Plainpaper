@@ -1,67 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Sparkles } from "lucide-react";
 import ActivitySection from "@/components/dashboard/ActivitySection";
+import DocumentStatsSection from "@/components/dashboard/DocumentStatsSection";
 import AppsSection from "@/components/dashboard/AppsSection";
-import WorkspaceSection from "@/components/dashboard/WorkspaceSection";
-import type {
-  ActivityItem,
-  AppItem,
-  WorkspaceItem,
-} from "@/components/dashboard/types";
+import type { ActivityItem, AppItem, DocStats } from "@/components/dashboard/types";
+import type { DocumentItem } from "@/app/_types/document";
+import { useAnalytics } from "@/components/analytics/use-analytics";
 import { useAuth } from "@/app/_contexts/AuthContext";
-
-const workspaces: WorkspaceItem[] = [
-  {
-    id: "personal",
-    name: "Personal Workspace",
-    type: "개인",
-    members: "1",
-    documents: 12,
-    summary: "최근 7일 동안 4건의 문서가 요약되었습니다.",
-  },
-  {
-    id: "team",
-    name: "Design Team",
-    type: "팀",
-    members: "6",
-    documents: 34,
-    summary: "문서 리뷰 흐름이 활성화되었습니다.",
-  },
-  {
-    id: "org",
-    name: "Plainpaper Labs",
-    type: "조직",
-    members: "24",
-    documents: 148,
-    summary: "이번 주 문서 분석 22건 진행 중.",
-  },
-];
-
-const activities: ActivityItem[] = [
-  {
-    id: "act-1",
-    title: "보험 약관 요약",
-    app: "AI Document Reader",
-    status: "완료",
-    time: "방금 전",
-  },
-  {
-    id: "act-2",
-    title: "서비스 이용약관 하이라이트",
-    app: "AI Document Reader",
-    status: "진행 중",
-    time: "15분 전",
-  },
-  {
-    id: "act-3",
-    title: "대출 계약서 Q&A",
-    app: "AI Document Reader",
-    status: "완료",
-    time: "어제",
-  },
-];
+import SeniorHubModal from "@/components/dashboard/SeniorHubModal";
 
 const apps: AppItem[] = [
   {
@@ -74,12 +22,13 @@ const apps: AppItem[] = [
     iconName: "file-text",
   },
   {
-    id: "wiki",
-    name: "Knowledge Wiki",
-    description: "팀 지식을 구조화하고 검색 가능한 위키로.",
-    status: "soon",
-    cta: "Coming Soon",
-    iconName: "layers",
+    id: "senior",
+    name: "노후 준비 체크",
+    description: "재무·건강·여가·대인관계 4영역으로 노후 준비도를 진단.",
+    status: "live",
+    cta: "열기",
+    href: "/senior",
+    iconName: "heart-pulse",
   },
   {
     id: "qa",
@@ -99,26 +48,104 @@ const apps: AppItem[] = [
     href: "/analytics",
     iconName: "line-chart",
   },
+  {
+    id: "wiki",
+    name: "Knowledge Wiki",
+    description: "팀 지식을 구조화하고 검색 가능한 위키로.",
+    status: "soon",
+    cta: "Coming Soon",
+    iconName: "layers",
+  },
 ];
-//dashboard page
+
+const statusLabel: Record<string, string> = {
+  done: "분석 완료",
+  error: "실패",
+  pending: "분석 중",
+  processing: "분석 중",
+};
+
+const relativeTime = (createdAt: string) => {
+  if (!createdAt) return "";
+  const parsed = new Date(`${createdAt}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return createdAt;
+  const days = Math.floor(
+    (Date.now() - parsed.getTime()) / (1000 * 60 * 60 * 24)
+  );
+  if (days <= 0) return "오늘";
+  if (days === 1) return "어제";
+  return `${days}일 전`;
+};
+
 export default function Dashboard() {
-  const [activeWorkspaceId, setActiveWorkspaceId] = useState(workspaces[0]?.id);
   const [mode, setMode] = useState<"admin" | "user">("admin");
-  const { user, loading } = useAuth();
+  const [hubOpen, setHubOpen] = useState(false);
+  const { user } = useAuth();
   const isAdmin = user?.role === "admin";
   const effectiveMode = isAdmin ? mode : "user";
 
   useEffect(() => {
-    if (loading) return;
-    setMode(isAdmin ? "admin" : "user");
-  }, [isAdmin, loading]);
-  const activeWorkspace = useMemo(
-    () => workspaces.find((item) => item.id === activeWorkspaceId) ?? workspaces[0],
-    [activeWorkspaceId]
+    let seen = "false";
+    try {
+      seen = localStorage.getItem("plainpaper_hub_seen") ?? "false";
+    } catch {
+      seen = "false";
+    }
+    if (seen !== "true") {
+      const timer = setTimeout(() => setHubOpen(true), 400);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const closeHub = () => {
+    try {
+      localStorage.setItem("plainpaper_hub_seen", "true");
+    } catch {
+      // ignore
+    }
+    setHubOpen(false);
+  };
+
+  const { data, loading } = useAnalytics<{ documents: DocumentItem[] }>(
+    "/documents/list"
+  );
+
+  const docs = useMemo(() => data?.documents ?? [], [data]);
+
+  const stats: DocStats = useMemo(() => {
+    return docs.reduce<DocStats>(
+      (acc, doc) => {
+        acc.total += 1;
+        if (doc.status === "done") acc.done += 1;
+        else if (doc.status === "error") acc.error += 1;
+        else acc.processing += 1;
+        return acc;
+      },
+      { total: 0, done: 0, processing: 0, error: 0 }
+    );
+  }, [docs]);
+
+  const recentDoc = useMemo(
+    () => docs[0] ?? null,
+    [docs]
+  );
+
+  const activities: ActivityItem[] = useMemo(
+    () =>
+      docs.slice(0, 5).map((doc) => ({
+        id: doc.document_id,
+        title: doc.file_name,
+        app: "AI Document Reader",
+        status: statusLabel[doc.status] ?? doc.status,
+        time: relativeTime(doc.created_at),
+        author: doc.member_name ?? undefined,
+      })),
+    [docs]
   );
 
   return (
     <main className="relative min-h-screen bg-background">
+      <SeniorHubModal open={hubOpen} onOpenChange={(v) => (v ? setHubOpen(true) : closeHub())} />
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 overflow-hidden"
@@ -170,12 +197,10 @@ export default function Dashboard() {
         </section>
 
         <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <WorkspaceSection
-            workspaces={workspaces}
-            activeWorkspace={activeWorkspace}
-            onSelectWorkspace={setActiveWorkspaceId}
-          />
-          {effectiveMode === "admin" && <ActivitySection activities={activities} />}
+          <DocumentStatsSection stats={stats} recentDoc={recentDoc} />
+          {effectiveMode === "admin" && (
+            <ActivitySection activities={activities} loading={loading} />
+          )}
         </section>
 
         <AppsSection apps={apps} mode={effectiveMode} />

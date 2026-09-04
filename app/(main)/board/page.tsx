@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useEffect, useMemo, useState } from "react";
+import { extractDetail } from "@/lib/api";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -57,8 +58,28 @@ const formatCreatedAt = (value: string) => {
   return parsed.toLocaleString("sv-SE").replace("T", " ");
 };
 
+type BoardRaw = {
+  id?: string;
+  board_id?: string;
+  title?: string;
+  subject?: string;
+  created_by?: string;
+  author?: string;
+  writer?: string;
+  created_at?: string;
+  createdAt?: string;
+  view_count?: number | string;
+  views?: number | string;
+  is_important?: boolean;
+  comment_count?: number | string;
+  comments_count?: number | string;
+  commentsCount?: number | string;
+  comments?: unknown[];
+  accepted_comment_?: boolean | string;
+};
+
 // 백엔드 응답 필드를 UI용 데이터로 정규화.
-const normalizeBoardItem = (raw: any): BoardItem => {
+const normalizeBoardItem = (raw: BoardRaw): BoardItem => {
   const commentCountValue =
     raw?.comment_count ??
     raw?.comments_count ??
@@ -91,8 +112,12 @@ export default function BoardPage() {
   const [statusFilter, setStatusFilter] = useState<"all" | "answered" | "waiting">(
     "all"
   );
-  const [page] = useState(1);
+  const [page, setPage] = useState(1);
   const [size] = useState(20);
+
+  useEffect(() => {
+    setPage(1);
+  }, [query, statusFilter]);
 
   useEffect(() => {
     const { startDate, endDate } = getDefaultDateRange();
@@ -121,12 +146,13 @@ export default function BoardPage() {
 
         if (!res.ok) {
           const errorPayload = await res.json().catch(() => null);
-          const message = errorPayload?.detail ?? "게시판 목록을 불러오지 못했습니다.";
-          throw new Error(message);
+          throw new Error(
+            extractDetail(errorPayload, "게시판 목록을 불러오지 못했습니다.")
+          );
         }
 
         const json = await res.json();
-        const rawItems = Array.isArray(json)
+        const rawItems: BoardRaw[] = Array.isArray(json)
           ? json
           : Array.isArray(json?.items)
           ? json.items
@@ -185,8 +211,7 @@ export default function BoardPage() {
                 return totalCount > 0
                   ? { ...item, status: "answered", commentCount: totalCount }
                   : item;
-              } catch (err) {
-                console.error("🔥 답변 상태 조회 실패:", err);
+              } catch {
                 return item;
               }
             })
@@ -200,7 +225,6 @@ export default function BoardPage() {
           );
         }
       } catch (err) {
-        console.error("🔥 게시판 목록 불러오기 실패:", err);
         setError(
           err instanceof Error ? err.message : "게시판 데이터를 불러오지 못했습니다."
         );
@@ -243,6 +267,8 @@ export default function BoardPage() {
     const baseTotal = hasFilters ? filteredItems.length : total || items.length;
     return baseTotal - (page - 1) * size - index;
   };
+
+  const totalPages = Math.max(1, Math.ceil((total || items.length) / size));
 
   return (
     <ProtectedPage>
@@ -353,7 +379,13 @@ export default function BoardPage() {
           <section className="flex flex-col gap-4">
             <div className="flex items-center justify-between text-base text-muted-foreground">
               <span>
-                총 <strong className="text-foreground">{filteredItems.length}</strong>건
+                총{" "}
+                <strong className="text-foreground">
+                  {query.trim() || statusFilter !== "all"
+                    ? filteredItems.length
+                    : total}
+                </strong>
+                건
               </span>
               <span>최근 업데이트 기준</span>
             </div>
@@ -445,6 +477,33 @@ export default function BoardPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* 페이지네이션 */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                >
+                  이전
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  {page} / {totalPages} 페이지
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page >= totalPages}
+                  onClick={() =>
+                    setPage((p) => Math.min(totalPages, p + 1))
+                  }
+                >
+                  다음
+                </Button>
+              </div>
+            )}
 
           </section>
         </div>

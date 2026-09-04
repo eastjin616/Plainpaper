@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { extractDetail } from "@/lib/api";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -22,8 +23,16 @@ type BoardDetail = {
   content: string;
 };
 
+type BoardRaw = {
+  title?: string;
+  subject?: string;
+  contents?: string;
+  content?: string;
+  question?: string;
+};
+
 // 상세 응답 필드를 화면용 데이터로 정규화.
-const normalizeBoardDetail = (raw: any): BoardDetail => ({
+const normalizeBoardDetail = (raw: BoardRaw): BoardDetail => ({
   title: raw?.title ?? raw?.subject ?? "",
   content: raw?.contents ?? raw?.content ?? raw?.question ?? "",
 });
@@ -53,18 +62,18 @@ export default function BoardEditPage() {
 
         if (!res.ok) {
           const errorPayload = await res.json().catch(() => null);
-          const message = errorPayload?.detail ?? "게시물 정보를 불러오지 못했습니다.";
-          throw new Error(message);
+          throw new Error(
+            extractDetail(errorPayload, "게시물 정보를 불러오지 못했습니다.")
+          );
         }
 
         const json = await res.json();
-        const rawDetail = json?.data ?? json?.board ?? json;
+        const rawDetail = (json?.data ?? json?.board ?? json) as BoardRaw;
         const normalized = normalizeBoardDetail(rawDetail);
         setTitle(normalized.title);
         setContent(normalized.content);
         setError(null);
       } catch (err) {
-        console.error("🔥 게시물 불러오기 실패:", err);
         setError(
           err instanceof Error ? err.message : "게시물 정보를 불러오지 못했습니다."
         );
@@ -98,13 +107,13 @@ export default function BoardEditPage() {
 
       if (!res.ok) {
         const errorPayload = await res.json().catch(() => null);
-        const message = errorPayload?.detail ?? "게시물 수정에 실패했습니다.";
-        throw new Error(message);
+        throw new Error(
+          extractDetail(errorPayload, "게시물 수정에 실패했습니다.")
+        );
       }
 
       router.push(`/board/${boardId}`);
     } catch (err) {
-      console.error("🔥 게시물 수정 실패:", err);
       setError(err instanceof Error ? err.message : "게시물 수정에 실패했습니다.");
     } finally {
       setSaving(false);

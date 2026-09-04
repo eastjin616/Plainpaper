@@ -10,23 +10,26 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+import { LayoutGrid, Menu } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useAuth } from "@/app/_contexts/AuthContext";
+import SeniorHubModal from "@/components/dashboard/SeniorHubModal";
 
 export default function Header() {
   const router = useRouter();
   const { user, isLoggedIn, logout } = useAuth();
+  const [hubOpen, setHubOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
     logout();
     router.push("/login");
   };
 
   return (
     <header className="w-full border-b border-border bg-background/80 backdrop-blur sticky top-0 z-50">
+      <SeniorHubModal open={hubOpen} onOpenChange={setHubOpen} />
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3 sm:px-8 sm:py-4">
         {/* 로고 */}
         <h1
@@ -42,6 +45,18 @@ export default function Header() {
             <span className="text-muted-foreground font-medium whitespace-nowrap">
               {user?.name}님 반갑습니다 👋
             </span>
+          )}
+          {isLoggedIn && (
+            <>
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => setHubOpen(true)}
+              >
+                <LayoutGrid className="h-4 w-4" />
+                기능 선택
+              </Button>
+            </>
           )}
           <ModeToggle />
           <Button
@@ -67,7 +82,7 @@ export default function Header() {
 
         {/* 모바일 메뉴 */}
         <div className="sm:hidden">
-          <Sheet>
+          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" aria-label="메뉴 열기">
                 <Menu className="size-5" />
@@ -86,6 +101,19 @@ export default function Header() {
                   </span>
                 )}
                 <ModeToggle />
+                {isLoggedIn && (
+                  <Button
+                    variant="default"
+                    className="justify-start"
+                    onClick={() => {
+                      setSheetOpen(false);
+                      setHubOpen(true);
+                    }}
+                  >
+                    <LayoutGrid className="mr-2 h-4 w-4" />
+                    기능 선택
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   className="justify-start text-muted-foreground hover:text-foreground"

@@ -15,7 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen bg-background text-foreground antialiased">
         <Providers>
           <AuthClientWrapper>
-            <main className="px-6 pt-8">{children}</main>
+            <div className="px-6 pt-8">{children}</div>
           </AuthClientWrapper>
         </Providers>
       </body>

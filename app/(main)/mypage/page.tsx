@@ -12,54 +12,95 @@ import {
   Trash2,
   Plus,
   CheckCircle,
+  HeartPulse,
+  ChevronRight,
 } from "lucide-react";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import type { DocumentItem } from "@/app/_types/document";
+import { API_URL, authHeaders, extractDetail, getErrorMessage } from "@/lib/api";
 
 export default function MyPage() {
   const router = useRouter();
-  const [docs, setDocs] = useState<any[]>([]);
+  const [docs, setDocs] = useState<DocumentItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showSeniorShortcut, setShowSeniorShortcut] = useState(true);
+
+  const loadDocuments = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_URL}/documents/list`, {
+        headers: authHeaders(),
+      });
+
+      if (!res.ok) {
+        const payload = await res.json().catch(() => null);
+        throw new Error(extractDetail(payload, "문서 목록을 불러오지 못했습니다."));
+      }
+
+      const json = await res.json();
+      const items = Array.isArray(json?.documents) ? json.documents : [];
+      setDocs(items as DocumentItem[]);
+    } catch (err) {
+      setError(getErrorMessage(err, "문서 목록을 불러오지 못했습니다."));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function loadDocuments() {
-      try {
-        const res = await fetch(`${API_URL}/documents/list`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-
-        const json = await res.json();
-        setDocs(json.documents || []);
-      } catch (err) {
-        console.error("🔥 목록 불러오기 실패:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
     loadDocuments();
   }, []);
+
+  useEffect(() => {
+    try {
+      setShowSeniorShortcut(
+        localStorage.getItem("plainpaper_senior_shortcut_hidden") !== "true"
+      );
+    } catch {
+      setShowSeniorShortcut(true);
+    }
+  }, []);
+
+  const hideSeniorShortcut = () => {
+    if (!confirm("노후 준비 체크 바로가기를 삭제할까요? 진단 결과는 보존됩니다.")) {
+      return;
+    }
+
+    try {
+      localStorage.setItem("plainpaper_senior_shortcut_hidden", "true");
+    } catch {
+      // ignore
+    }
+    setShowSeniorShortcut(false);
+  };
 
   // 🔥 문서 삭제
   const handleDelete = async (id: string) => {
     if (!confirm("정말 삭제할까요?")) return;
 
-    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(`${API_URL}/files/${id}`, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
 
-    const response = await fetch(`${API_URL}/files/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (response.ok) {
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(extractDetail(payload, "삭제에 실패했습니다."));
+      }
       setDocs((prev) => prev.filter((doc) => doc.document_id !== id));
-    } else {
-      alert("삭제 실패");
+    } catch (err) {
+      alert(getErrorMessage(err, "삭제에 실패했습니다."));
     }
+  };
+
+  const openDocument = (doc: DocumentItem) => {
+    router.push(
+      doc.status === "done"
+        ? `/analysis/${doc.document_id}`
+        : `/analysis/loading/${doc.document_id}`
+    );
   };
 
   // ----------------------------
@@ -81,8 +122,56 @@ export default function MyPage() {
 
         <h1 className="text-3xl font-bold mb-8 text-foreground">📂 내 문서</h1>
 
+        {/* 노후 준비 진단 바로가기 */}
+        {showSeniorShortcut && (
+          <Card
+            className="group mb-8 cursor-pointer border-border bg-card/80 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
+            onClick={() => router.push("/senior")}
+          >
+            <CardContent className="flex items-center justify-between gap-4 p-5">
+              <div className="flex items-center gap-4">
+                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-green-500/10">
+                  <HeartPulse className="h-6 w-6 text-green-500" />
+                </span>
+                <div>
+                  <p className="font-semibold text-foreground">노후 준비 체크</p>
+                  <p className="text-sm text-muted-foreground">
+                    재무·건강·여가·대인관계 4영역으로 나의 노후 준비 상태를 진단해보세요
+                  </p>
+                </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  aria-label="노후 준비 체크 바로가기 삭제"
+                  title="바로가기 삭제"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    hideSeniorShortcut();
+                  }}
+                  className="rounded-full p-2 text-muted-foreground opacity-0 transition hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100 focus-visible:opacity-100"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* 로드 실패 */}
+        {error && (
+          <div className="flex flex-col items-center justify-center h-[60vh] text-muted-foreground">
+            <FileText className="w-14 h-14 mb-4 text-destructive/50" />
+            <p className="text-lg font-medium text-destructive">{error}</p>
+            <Button className="mt-6" onClick={loadDocuments}>
+              다시 시도
+            </Button>
+          </div>
+        )}
+
         {/* 문서 없음 */}
-        {docs.length === 0 && (
+        {!error && docs.length === 0 && (
           <div className="flex flex-col items-center justify-center h-[60vh] text-muted-foreground">
             <FileText className="w-14 h-14 mb-4 text-muted-foreground/50" />
             <p className="text-lg font-medium">업로드한 문서가 없습니다</p>
@@ -103,7 +192,7 @@ export default function MyPage() {
             <Card
               key={doc.document_id}
               className="group shadow-sm border-border bg-card/80 backdrop-blur hover:shadow-lg transition relative cursor-pointer"
-              onClick={() => router.push(`/analysis/${doc.document_id}`)}
+              onClick={() => openDocument(doc)}
             >
               <CardContent className="p-5">
 
